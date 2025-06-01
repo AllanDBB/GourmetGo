@@ -21,10 +21,80 @@ class AuthViewModel(
         checkLoginStatus()
     }
 
+    // Función de validación de email
+    private fun isValidEmail(email: String): Boolean =
+        android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+
+    // Función de validación de contraseña con formato específico
+    private fun isValidPassword(password: String): Boolean {
+        // Debe tener exactamente 11 caracteres (6 letras + 4 números + 1 punto)
+        if (password.length != 11) return false
+
+        // Contar letras, números y puntos
+        var letterCount = 0
+        var digitCount = 0
+        var dotCount = 0
+
+        for (char in password) {
+            when {
+                char.isLetter() -> letterCount++
+                char.isDigit() -> digitCount++
+                char == '.' -> dotCount++
+                else -> return false // Caracteres no permitidos
+            }
+        }
+
+        // Verificar que tenga exactamente 6 letras, 4 números y 1 punto
+        return letterCount == 6 && digitCount == 4 && dotCount == 1
+    }
+
+    // Función para validar las credenciales
+    fun validateCredentials(email: String, password: String): Boolean {
+        var isValid = true
+        var emailError: String? = null
+        var passwordError: String? = null
+
+        // Validar email
+        when {
+            email.isBlank() -> {
+                emailError = "El correo electrónico es requerido"
+                isValid = false
+            }
+            !isValidEmail(email) -> {
+                emailError = "Formato de correo electrónico inválido"
+                isValid = false
+            }
+        }
+
+        // Validar contraseña con formato específico
+        when {
+            password.isBlank() -> {
+                passwordError = "La contraseña es requerida"
+                isValid = false
+            }
+            password.length != 11 -> {
+                passwordError = "La contraseña debe tener exactamente 11 caracteres"
+                isValid = false
+            }
+            !isValidPassword(password) -> {
+                passwordError = "La contraseña debe tener 6 letras, 4 números y un punto"
+                isValid = false
+            }
+        }
+
+        // Actualizar el estado con los errores
+        uiState = uiState.copy(
+            emailError = emailError,
+            passwordError = passwordError
+        )
+
+        return isValid
+    }
+
     fun login(email: String, password: String) {
-        if (email.isBlank() || password.isBlank()) {
-            uiState = uiState.copy(error = "Correo y contraseña son requeridos")
-            return
+        // Primero validar las credenciales
+        if (!validateCredentials(email, password)) {
+            return // Si no es válido, salir sin hacer la petición
         }
 
         uiState = uiState.copy(isLoading = true, error = null)
@@ -37,7 +107,9 @@ class AuthViewModel(
                             isLoading = false,
                             isLoggedIn = true,
                             user = user,
-                            error = null
+                            error = null,
+                            emailError = null,
+                            passwordError = null
                         )
                         Log.d("AuthViewModel", "Login successful for user: ${user.name}")
                     }
@@ -91,4 +163,7 @@ class AuthViewModel(
         uiState = uiState.copy(error = null)
     }
 
+    fun clearFieldErrors() {
+        uiState = uiState.copy(emailError = null, passwordError = null)
+    }
 }

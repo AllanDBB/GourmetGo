@@ -49,8 +49,8 @@ object UserMockup {
     )
 
     private val testCredentials = mapOf(
-        "juan@test.com" to "123456",
-        "maria@chef.com" to "123456",
+        "juan@test.com" to "abcdeF.1234",
+        "maria@chef.com" to "aaaaaa1234.",
         "info@lasabrosa.com" to "123456",
         "ana@test.com" to "123456"
     )

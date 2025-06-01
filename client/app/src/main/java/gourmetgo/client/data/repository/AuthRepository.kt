@@ -44,7 +44,7 @@ class AuthRepository(
 
                 Result.success(user)
             } else {
-                Result.failure(Exception("Bad credentials"))
+                Result.failure(Exception("Email o contraseña incorrectos"))
             }
         } catch (e: Exception) {
             Log.e("AuthRepository", "Error in mockup login", e)

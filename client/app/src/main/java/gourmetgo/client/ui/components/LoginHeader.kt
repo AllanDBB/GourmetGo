@@ -30,7 +30,7 @@ fun LoginHeader(modifier: Modifier = Modifier) {
                 .size(120.dp)
                 .padding(bottom = 32.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.onPrimary
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
@@ -48,7 +48,7 @@ fun LoginHeader(modifier: Modifier = Modifier) {
 
         Text(
             text = "GourmetGo",
-            fontSize = 32.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 8.dp)
