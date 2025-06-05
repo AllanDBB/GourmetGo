@@ -36,7 +36,7 @@ class AuthViewModel(
                         uiState = uiState.copy(
                             isLoading = false,
                             isLoggedIn = true,
-                            user = user,
+                            client = repository.getCurrentUser(),
                             error = null
                         )
                         Log.d("AuthViewModel", "Login successful for user: ${user.name}")
@@ -72,10 +72,10 @@ class AuthViewModel(
     fun checkLoginStatus() {
         try {
             if (repository.isLoggedIn()) {
-                val user = repository.getCurrentUser()
+                val user =  repository.getCurrentUser()
                 uiState = uiState.copy(
                     isLoggedIn = true,
-                    user = user
+                    client = user
                 )
                 Log.d("AuthViewModel", "User is already logged in: ${user?.name}")
             } else {

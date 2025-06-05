@@ -39,9 +39,9 @@ object EditProfileUtils {
         val numbers = phone.replace(Regex("[^0-9]"), "")
 
         return when {
-            numbers.length == 11 && numbers.startsWith("506") -> "+numbers"
+            numbers.length == 11 && numbers.startsWith("506") -> "+$numbers"
             numbers.length == 8 -> "+506$numbers"
-            else -> numbers
+            else -> "+$numbers"
         }
     }
 

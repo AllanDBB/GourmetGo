@@ -40,14 +40,14 @@ fun EditProfileScreen(
     val focusManager = LocalFocusManager.current
     val uiState = viewModel.uiState
 
-    var name by remember { mutableStateOf(uiState.user?.name ?: "") }
-    var email by remember { mutableStateOf(uiState.user?.email ?: "") }
-    var phoneInput by remember { mutableStateOf(EditProfileUtils.cleanPhoneInput(uiState.user?.phone ?: "")) }
-    var dniInput by remember { mutableStateOf(EditProfileUtils.cleanDNIInput(uiState.user?.dni ?: "")) }
-    var selectedPreferences by remember { mutableStateOf(uiState.user?.preferences ?: emptyList()) }
+    var name by remember { mutableStateOf(uiState.client?.name ?: "") }
+    var email by remember { mutableStateOf(uiState.client?.email ?: "") }
+    var phoneInput by remember { mutableStateOf(EditProfileUtils.cleanPhoneInput(uiState.client?.phone ?: "")) }
+    var dniInput by remember { mutableStateOf(EditProfileUtils.cleanDNIInput(uiState.client?.dni ?: "")) }
+    var selectedPreferences by remember { mutableStateOf(uiState.client?.preferences ?: emptyList()) }
 
-    var phoneDisplayValue by remember { mutableStateOf(EditProfileUtils.formatPhoneForDisplay(uiState.user?.phone ?: "")) }
-    var dniDisplayValue by remember { mutableStateOf(EditProfileUtils.formatDNIForDisplay(uiState.user?.dni ?: "")) }
+    var phoneDisplayValue by remember { mutableStateOf(EditProfileUtils.formatPhoneForDisplay(uiState.client?.phone ?: "")) }
+    var dniDisplayValue by remember { mutableStateOf(EditProfileUtils.formatDNIForDisplay(uiState.client?.dni ?: "")) }
 
     var nameError by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf("") }
@@ -58,10 +58,10 @@ fun EditProfileScreen(
     val scrollState = rememberScrollState()
 
     fun validateFields(): Boolean {
-        nameError = if (!EditProfileUtils.isValidName(name)) "Name must contain only letters and spaces" else ""
-        emailError = if (!EditProfileUtils.isValidEmail(email)) "Invalid email format" else ""
-        phoneError = if (phoneInput.isNotEmpty() && !EditProfileUtils.isValidPhone(phoneInput)) "Phone must have 8 digits" else ""
-        dniError = if (dniInput.isNotEmpty() && !EditProfileUtils.isValidDNI(dniInput)) "ID must have 9 digits" else ""
+        nameError = if (!EditProfileUtils.isValidName(name)) "El nombre solo puede contener letras y espacios" else ""
+        emailError = if (!EditProfileUtils.isValidEmail(email)) "Formato de correo electrónico inválido" else ""
+        phoneError = if (phoneInput.isNotEmpty() && !EditProfileUtils.isValidPhone(phoneInput)) "El teléfono debe tener 8 dígitos" else ""
+        dniError = if (dniInput.isNotEmpty() && !EditProfileUtils.isValidDNI(dniInput)) "La cédula debe tener 9 dígitos" else ""
 
         return nameError.isEmpty() && emailError.isEmpty() && phoneError.isEmpty() && dniError.isEmpty()
     }
@@ -75,7 +75,7 @@ fun EditProfileScreen(
 
     LaunchedEffect(uiState.updateSuccess) {
         if (uiState.updateSuccess) {
-            Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Perfil actualizado exitosamente", Toast.LENGTH_SHORT).show()
             viewModel.clearUpdateSuccess()
             onNavigateBack()
         }
@@ -92,12 +92,12 @@ fun EditProfileScreen(
                 IconButton(onClick = onNavigateBack) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = "Volver",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Text(
-                    text = "Edit Profile",
+                    text = "Editar Perfil",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary,
@@ -122,7 +122,7 @@ fun EditProfileScreen(
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable {
-                        Toast.makeText(context, "Change photo coming soon", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Cambiar foto próximamente", Toast.LENGTH_SHORT).show()
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -136,7 +136,7 @@ fun EditProfileScreen(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Contact",
+                        text = "Contacto",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -147,7 +147,7 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Full Name",
+                text = "Nombre Completo",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.fillMaxWidth(),
@@ -165,7 +165,7 @@ fun EditProfileScreen(
                         nameError = ""
                     }
                 },
-                placeholder = { Text("Enter your full name", fontSize = 14.sp) },
+                placeholder = { Text("Ingresa tu nombre completo", fontSize = 14.sp) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
@@ -177,7 +177,7 @@ fun EditProfileScreen(
                     .fillMaxWidth()
                     .onFocusChanged { focusState ->
                         if (!focusState.isFocused && name.isNotEmpty()) {
-                            nameError = if (!EditProfileUtils.isValidName(name)) "Name must contain only letters and spaces" else ""
+                            nameError = if (!EditProfileUtils.isValidName(name)) "El nombre solo puede contener letras y espacios" else ""
                         }
                     },
                 singleLine = true,
@@ -209,7 +209,7 @@ fun EditProfileScreen(
                     email = newValue.trim()
                     emailError = ""
                 },
-                placeholder = { Text("example@gmail.com", fontSize = 14.sp) },
+                placeholder = { Text("ejemplo@gmail.com", fontSize = 14.sp) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
@@ -221,7 +221,7 @@ fun EditProfileScreen(
                     .fillMaxWidth()
                     .onFocusChanged { focusState ->
                         if (!focusState.isFocused && email.isNotEmpty()) {
-                            emailError = if (!EditProfileUtils.isValidEmail(email)) "Invalid email format" else ""
+                            emailError = if (!EditProfileUtils.isValidEmail(email)) "Formato de correo electrónico inválido" else ""
                         }
                     },
                 singleLine = true,
@@ -238,7 +238,7 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Phone",
+                text = "Teléfono",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.fillMaxWidth(),
@@ -253,11 +253,7 @@ fun EditProfileScreen(
                     val cleanInput = EditProfileUtils.cleanPhoneInput(newValue)
                     if (cleanInput.length <= 8) {
                         phoneInput = cleanInput
-                        phoneDisplayValue = if (cleanInput.isNotEmpty()) {
-                            EditProfileUtils.formatPhoneForDisplay(cleanInput)
-                        } else {
-                            ""
-                        }
+                        phoneDisplayValue = cleanInput
                         phoneError = ""
                     }
                 },
@@ -272,11 +268,9 @@ fun EditProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .onFocusChanged { focusState ->
-                        if (!focusState.isFocused) {
+                        if (!focusState.isFocused && phoneInput.isNotEmpty()) {
                             phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(phoneInput)
-                            if (phoneInput.isNotEmpty()) {
-                                phoneError = if (!EditProfileUtils.isValidPhone(phoneInput)) "Phone must have 8 digits" else ""
-                            }
+                            phoneError = if (!EditProfileUtils.isValidPhone(phoneInput)) "El teléfono debe tener 8 dígitos" else ""
                         }
                     },
                 singleLine = true,
@@ -293,7 +287,7 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "ID Number",
+                text = "Cédula",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.fillMaxWidth(),
@@ -308,12 +302,8 @@ fun EditProfileScreen(
                     val cleanInput = EditProfileUtils.cleanDNIInput(newValue)
                     if (cleanInput.length <= 9) {
                         dniInput = cleanInput
-                        dniDisplayValue = if (cleanInput.isNotEmpty()) {
-                            EditProfileUtils.formatDNIForDisplay(cleanInput)
-                        } else {
-                            ""
-                        }
-                        dniError = ""
+                        dniDisplayValue = cleanInput
+                        dniError = if (cleanInput.isNotEmpty() && cleanInput.length != 9) "La cédula debe tener 9 dígitos" else ""
                     }
                 },
                 placeholder = { Text("1-2345-6789", fontSize = 14.sp) },
@@ -327,11 +317,9 @@ fun EditProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .onFocusChanged { focusState ->
-                        if (!focusState.isFocused) {
+                        if (!focusState.isFocused && dniInput.isNotEmpty()) {
                             dniDisplayValue = EditProfileUtils.formatDNIForDisplay(dniInput)
-                            if (dniInput.isNotEmpty()) {
-                                dniError = if (!EditProfileUtils.isValidDNI(dniInput)) "ID must have 9 digits" else ""
-                            }
+                            dniError = if (!EditProfileUtils.isValidDNI(dniInput)) "La cédula debe tener 9 dígitos" else ""
                         }
                     },
                 singleLine = true,
@@ -348,7 +336,7 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Food Preferences (optional)",
+                text = "Preferencias Gastronómicas (opcional)",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.fillMaxWidth(),
@@ -421,7 +409,7 @@ fun EditProfileScreen(
                     )
                 } else {
                     Text(
-                        text = "Save Changes",
+                        text = "Guardar Cambios",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )

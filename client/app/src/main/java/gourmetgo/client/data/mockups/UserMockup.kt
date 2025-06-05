@@ -1,12 +1,12 @@
 package gourmetgo.client.data.mockups
 
-import gourmetgo.client.data.models.User
+import gourmetgo.client.data.models.Client
 
 
 object UserMockup {
 
-    private val testUsers = listOf(
-        User(
+    private val testClients = listOf(
+        Client(
             id = "user_001",
             name = "Juz",
             email = "juan@test.com",
@@ -17,7 +17,7 @@ object UserMockup {
             preferences = listOf("Italiana", "Vegana", "Mediterránea"),
             createdAt = "2024-01-15T10:30:00Z"
         ),
-        User(
+        Client(
             id = "chef_001",
             name = "Chef María González",
             email = "maria@chef.com",
@@ -28,7 +28,7 @@ object UserMockup {
             preferences = listOf("Fusión", "Gourmet", "Internacional"),
             createdAt = "2024-01-10T08:15:00Z"
         ),
-        User(
+        Client(
             id = "chef_002",
             name = "Restaurante La Sabrosa",
             email = "info@lasabrosa.com",
@@ -39,7 +39,7 @@ object UserMockup {
             preferences = listOf("Tradicional", "Costarricense"),
             createdAt = "2024-01-05T14:20:00Z"
         ),
-        User(
+        Client(
             id = "user_002",
             name = "Ana Rodríguez",
             email = "ana@test.com",
@@ -59,20 +59,20 @@ object UserMockup {
         "ana@test.com" to "123456"
     )
 
-    fun getAllUsers(): List<User> = testUsers
+    fun getAllUsers(): List<Client> = testClients
 
-    private fun getUserByEmail(email: String): User? =
-        testUsers.find { it.email.equals(email, ignoreCase = true) }
+    private fun getUserByEmail(email: String): Client? =
+        testClients.find { it.email.equals(email, ignoreCase = true) }
 
-    fun getUserById(id: String): User? =
-        testUsers.find { it.id == id }
+    fun getUserById(id: String): Client? =
+        testClients.find { it.id == id }
 
-    fun validateCredentials(email: String, password: String): User? {
+    fun validateCredentials(email: String, password: String): Client? {
         return if (testCredentials[email] == password) {
             getUserByEmail(email)
         } else null
     }
 
-    fun getUsersByRole(role: String): List<User> =
-        testUsers.filter { it.role.equals(role, ignoreCase = true) }
+    fun getUsersByRole(role: String): List<Client> =
+        testClients.filter { it.role.equals(role, ignoreCase = true) }
 }

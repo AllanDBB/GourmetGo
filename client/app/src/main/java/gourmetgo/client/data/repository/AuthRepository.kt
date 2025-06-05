@@ -3,11 +3,11 @@ package gourmetgo.client.data.repository
 import android.util.Log
 import gourmetgo.client.AppConfig
 import gourmetgo.client.data.localStorage.SharedPrefsManager
-import gourmetgo.client.data.mockups.UserMockup
+//import gourmetgo.client.data.mockups.UserMockup
+import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.User
 import gourmetgo.client.data.models.dtos.LoginRequest
 import gourmetgo.client.data.remote.ApiService
-import kotlinx.coroutines.delay
 
 class AuthRepository(
     private val apiService: ApiService,
@@ -27,36 +27,15 @@ class AuthRepository(
         }
     }
 
-    private suspend fun loginWithMockup(email: String, password: String): Result<User> {
-        return try {
-            if (AppConfig.ENABLE_LOGGING) {
-                Log.d("AuthRepository", "Attempting mockup login for: $email")
-            }
-            delay(AppConfig.MOCK_NETWORK_DELAY)
-
-            val user = UserMockup.validateCredentials(email, password)
-
-            if (user != null) {
-                val fakeToken = "mock_token_${System.currentTimeMillis()}"
-
-                sharedPrefs.saveToken(fakeToken)
-                sharedPrefs.saveUser(user)
-
-                Result.success(user)
-            } else {
-                Result.failure(Exception("Bad credentials"))
-            }
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Error in mockup login", e)
-            Result.failure(Exception("Error : ${e.message}"))
-        }
+    private  fun loginWithMockup(email: String, password: String): Result<User> {
+       return  Result.success(User())
     }
 
     private suspend fun loginWithApi(email: String, password: String): Result<User> {
         return try {
             val response = apiService.login(LoginRequest(email, password))
             sharedPrefs.saveToken(response.token)
-            sharedPrefs.saveUser(response.user)
+            sharedPrefs.saveUser(apiService.getMe(response.token))
             Result.success(response.user)
         } catch (e: Exception) {
             Log.e("AuthRepository", "Error in API login", e)
@@ -81,7 +60,7 @@ class AuthRepository(
         }
     }
 
-    fun getCurrentUser(): User? {
+    fun getCurrentUser(): Client? {
         return try {
             sharedPrefs.getUser()
         } catch (e: Exception) {
@@ -90,16 +69,8 @@ class AuthRepository(
         }
     }
 
-    fun getToken(): String? {
-        return try {
-            sharedPrefs.getToken()
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Error getting token", e)
-            null
-        }
-    }
 
-    fun updateUserLocally(user: User) {
+    fun updateUserLocally(user: Client) {
         try {
             sharedPrefs.saveUser(user)
             Log.d("AuthRepository", "User updated locally: ${user.name}")

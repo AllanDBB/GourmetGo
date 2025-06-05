@@ -26,11 +26,11 @@ class ProfileViewModel(
     private fun loadCurrentUser() {
         try {
             val currentUser = authRepository.getCurrentUser()
-            uiState = uiState.copy(user = currentUser)
+            uiState = uiState.copy(client = currentUser)
             Log.d("ProfileViewModel", "Current user loaded: ${currentUser?.name}")
         } catch (e: Exception) {
             Log.e("ProfileViewModel", "Error loading current user", e)
-            uiState = uiState.copy(error = "Error al cargar usuario")
+            uiState = uiState.copy(error = "Error cargando perfil de usuario")
         }
     }
 
@@ -42,27 +42,27 @@ class ProfileViewModel(
         preferences: List<String>
     ) {
         if (name.isBlank() || email.isBlank()) {
-            uiState = uiState.copy(error = "Nombre y mail requerido")
+            uiState = uiState.copy(error = "Nombre y correo son obligatorios")
             return
         }
 
         if (!EditProfileUtils.isValidName(name)) {
-            uiState = uiState.copy(error = "Solo letras y espacios")
+            uiState = uiState.copy(error = "El nombre solo puede contener letras y espacios")
             return
         }
 
         if (!EditProfileUtils.isValidEmail(email)) {
-            uiState = uiState.copy(error = "Mail no valido")
+            uiState = uiState.copy(error = "Formato de correo electrónico inválido")
             return
         }
 
         if (phone.isNotBlank() && !EditProfileUtils.isValidPhone(phone)) {
-            uiState = uiState.copy(error = "El telefono deve tener 8 digitos")
+            uiState = uiState.copy(error = "El teléfono debe tener 8 dígitos")
             return
         }
 
         if (identification.isNotBlank() && !EditProfileUtils.isValidDNI(identification)) {
-            uiState = uiState.copy(error = "La identificacion debe tener 9 digitos")
+            uiState = uiState.copy(error = "La cédula debe tener 9 dígitos")
             return
         }
 
@@ -72,7 +72,7 @@ class ProfileViewModel(
             try {
                 kotlinx.coroutines.delay(1000)
 
-                val updatedUser = uiState.user?.copy(
+                val updatedUser = uiState.client?.copy(
                     name = name,
                     email = email,
                     phone = phone,
@@ -84,17 +84,17 @@ class ProfileViewModel(
                     authRepository.updateUserLocally(user)
                     uiState = uiState.copy(
                         isLoading = false,
-                        user = user,
+                        client = user,
                         updateSuccess = true,
                         error = null
                     )
-                    Log.d("ProfileViewModel", "Profile updated successfully for: ${user.phone}")
+                    Log.d("ProfileViewModel", "Profile updated successfully for: ${user.name}")
                 }
 
             } catch (e: Exception) {
                 uiState = uiState.copy(
                     isLoading = false,
-                    error = "Error updating profile: ${e.message}"
+                    error = "Error actualizando perfil: ${e.message}"
                 )
                 Log.e("ProfileViewModel", "Error updating profile", e)
             }
