@@ -8,10 +8,11 @@ object UserMockup {
     private val testUsers = listOf(
         User(
             id = "user_001",
-            name = "Juan Pérez",
+            name = "Juz",
             email = "juan@test.com",
             phone = "88887777",
             role = "user",
+            dni = "1234222",
             avatar = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
             preferences = listOf("Italiana", "Vegana", "Mediterránea"),
             createdAt = "2024-01-15T10:30:00Z"
@@ -22,6 +23,7 @@ object UserMockup {
             email = "maria@chef.com",
             phone = "99998888",
             role = "chef",
+            dni = "1234222",
             avatar = "https://images.unsplash.com/photo-1559548331-f9cb98001426?w=150",
             preferences = listOf("Fusión", "Gourmet", "Internacional"),
             createdAt = "2024-01-10T08:15:00Z"
@@ -32,6 +34,7 @@ object UserMockup {
             email = "info@lasabrosa.com",
             phone = "22445566",
             role = "chef",
+            dni = "1234222",
             avatar = "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=150",
             preferences = listOf("Tradicional", "Costarricense"),
             createdAt = "2024-01-05T14:20:00Z"
@@ -42,6 +45,7 @@ object UserMockup {
             email = "ana@test.com",
             phone = "77776666",
             role = "user",
+            dni = "1234222",
             avatar = "https://images.unsplash.com/photo-1494790108755-2616b332c3db?w=150",
             preferences = listOf("Asiática", "Saludable", "Vegana"),
             createdAt = "2024-01-20T16:45:00Z"

@@ -98,4 +98,14 @@ class AuthRepository(
             null
         }
     }
+
+    fun updateUserLocally(user: User) {
+        try {
+            sharedPrefs.saveUser(user)
+            Log.d("AuthRepository", "User updated locally: ${user.name}")
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error updating user locally", e)
+            throw Exception("Error al guardar datos localmente")
+        }
+    }
 }

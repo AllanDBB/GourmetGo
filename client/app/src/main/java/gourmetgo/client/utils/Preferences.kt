@@ -16,4 +16,5 @@ enum class Preferences {
             OTHERS -> "Otros"
         }
     }
+
 }

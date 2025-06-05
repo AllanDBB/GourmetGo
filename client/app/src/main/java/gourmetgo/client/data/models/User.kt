@@ -8,6 +8,7 @@ data class User(
     val phone: String = "",
     val role: String = "user",
     val avatar: String = "",
+    val dni: String = "",
     val preferences: List<String> = emptyList(),
     val createdAt: String = ""
 )
