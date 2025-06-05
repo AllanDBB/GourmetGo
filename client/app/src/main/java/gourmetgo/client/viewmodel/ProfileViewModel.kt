@@ -10,7 +10,7 @@ import gourmetgo.client.data.repository.AuthRepository
 import gourmetgo.client.utils.PhoneUtils
 import gourmetgo.client.viewmodel.statesUi.ProfileUiState
 import kotlinx.coroutines.launch
-import  gourmetgo.client.utils.Preferences
+import  gourmetgo.client.enums.Preferences
 
 class ProfileViewModel(
     private val authRepository: AuthRepository

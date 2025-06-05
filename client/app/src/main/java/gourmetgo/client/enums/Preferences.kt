@@ -1,4 +1,4 @@
-package gourmetgo.client.utils
+package gourmetgo.client.enums
 
 enum class Preferences {
     ITALIAN,
