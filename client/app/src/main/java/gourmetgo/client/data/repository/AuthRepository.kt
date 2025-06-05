@@ -57,12 +57,8 @@ class AuthRepository(
         }
     }
 
-    private suspend fun updateUserWithMockup(user: Client): Result<Client> {
+    private fun updateUserWithMockup(user: Client): Result<Client> {
         return try {
-            // Simulate network delay
-            kotlinx.coroutines.delay(AppConfig.MOCK_NETWORK_DELAY)
-
-            // Update local storage
             sharedPrefs.saveUser(user)
             Log.d("AuthRepository", "User updated with mockup: ${user.name}")
             Result.success(user)
@@ -79,18 +75,27 @@ class AuthRepository(
                 Log.e("AuthRepository", "No token found for API update")
                 return Result.failure(Exception("Token no encontrado. Inicia sesión nuevamente."))
             }
+            var updatedUser :Client = Client()
 
-            val updateRequest = UpdateUserRequest(
-                email = user.email,
-                phone = user.phone,
-                identification = user.dni,
-                photoUrl = user.avatar.takeIf { it.isNotBlank() },
-                preferences = user.preferences
-            )
-
-            val updatedUser = apiService.updateProfile("Bearer $token", updateRequest)
-
-            // Update local storage with the response from server
+            if(user.role=="user") {
+                val updateRequest = UpdateUserRequest(
+                    email = user.email,
+                    phone = user.phone,
+                    identification = user.identification,
+                    photoUrl = user.avatar.takeIf { it.isNotBlank() },
+                    preferences = user.preferences
+                )
+                updatedUser = apiService.updateProfile("Bearer $token", updateRequest)
+            }else{
+                val updateRequest = UpdateUserRequest(
+                    email = user.email,
+                    phone = user.phone,
+                    identification = user.identification,
+                    photoUrl = user.avatar.takeIf { it.isNotBlank() },
+                    preferences = user.preferences
+                )
+                updatedUser = apiService.updateProfile("Bearer $token", updateRequest)
+            }
             sharedPrefs.saveUser(updatedUser)
             Log.d("AuthRepository", "User updated via API: ${updatedUser.name}")
             Result.success(updatedUser)
@@ -127,14 +132,5 @@ class AuthRepository(
         }
     }
 
-    // Keep this method for local updates (backward compatibility)
-    fun updateUser(user: Client) {
-        try {
-            sharedPrefs.saveUser(user)
-            Log.d("AuthRepository", "User updated locally: ${user.name}")
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Error updating user locally", e)
-            throw Exception("Error al guardar datos localmente")
-        }
-    }
+
 }

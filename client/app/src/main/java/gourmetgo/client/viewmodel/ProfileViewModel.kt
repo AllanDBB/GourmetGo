@@ -23,11 +23,18 @@ class ProfileViewModel(
         loadCurrentUser()
     }
 
-    private fun loadCurrentUser() {
+    fun loadCurrentUser() {
         try {
+            Log.w("user","calling")
             val currentUser = authRepository.getCurrentUser()
-            uiState = uiState.copy(client = currentUser)
-            Log.d("ProfileViewModel", "Current user loaded: ${currentUser?.name}")
+
+            if (currentUser != null) {
+                uiState = uiState.copy(client = currentUser)
+                Log.d("ProfileViewModel", "Current user loaded: $currentUser")
+            } else {
+                Log.e("ProfileViewModel", "No user data found")
+                uiState = uiState.copy(error = "No se encontraron datos del usuario")
+            }
         } catch (e: Exception) {
             Log.e("ProfileViewModel", "Error loading current user", e)
             uiState = uiState.copy(error = "Error cargando perfil de usuario")
@@ -70,41 +77,47 @@ class ProfileViewModel(
 
         viewModelScope.launch {
             try {
-                val updatedUser = uiState.client?.copy(
+                val currentUser = uiState.client
+                if (currentUser == null) {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        error = "No se encontraron datos del usuario"
+                    )
+                    return@launch
+                }
+
+                val updatedUser = currentUser.copy(
                     name = name,
                     email = email,
                     phone = phone,
-                    dni = identification,
+                    identification = identification,
                     preferences = preferences
                 )
 
-                updatedUser?.let { user ->
-                    // Call the API to update the profile
-                    authRepository.updateUserProfile(user)
-                        .onSuccess { apiUpdatedUser ->
-                            uiState = uiState.copy(
-                                isLoading = false,
-                                client = apiUpdatedUser,
-                                updateSuccess = true,
-                                error = null
-                            )
-                            Log.d("ProfileViewModel", "Profile updated successfully via API: ${apiUpdatedUser.name}")
-                        }
-                        .onFailure { error ->
-                            uiState = uiState.copy(
-                                isLoading = false,
-                                error = error.message ?: "Error desconocido al actualizar perfil"
-                            )
-                            Log.e("ProfileViewModel", "Error updating profile via API", error)
-                        }
-                }
+                authRepository.updateUserProfile(updatedUser)
+                    .onSuccess { user ->
+                        uiState = uiState.copy(
+                            isLoading = false,
+                            client = user,
+                            updateSuccess = true,
+                            error = null
+                        )
+                        Log.d("ProfileViewModel", "Profile updated successfully for: ${user.name}")
+                    }
+                    .onFailure { error ->
+                        uiState = uiState.copy(
+                            isLoading = false,
+                            error = error.message ?: "Error actualizando perfil"
+                        )
+                        Log.e("ProfileViewModel", "Error updating profile", error)
+                    }
 
             } catch (e: Exception) {
                 uiState = uiState.copy(
                     isLoading = false,
-                    error = "Error inesperado: ${e.message}"
+                    error = "Error actualizando perfil: ${e.message}"
                 )
-                Log.e("ProfileViewModel", "Unexpected error updating profile", e)
+                Log.e("ProfileViewModel", "Error updating profile", e)
             }
         }
     }

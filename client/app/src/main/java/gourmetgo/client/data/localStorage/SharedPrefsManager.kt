@@ -26,11 +26,10 @@ class SharedPrefsManager(context: Context) {
         prefs.edit().putString("user_data", userJson).apply()
     }
 
-    fun getUser(): Client? {
+    fun getUser(): Client {
         val userJson = prefs.getString("user_data", null)
-        return if (userJson != null) {
-            gson.fromJson(userJson, Client::class.java)
-        } else null
+        return gson.fromJson(userJson, Client::class.java)
+
     }
 
     fun isLoggedIn(): Boolean {

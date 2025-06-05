@@ -8,7 +8,7 @@ data class Client(
     val phone: String = "",
     val role: String = "user",
     val avatar: String = "",
-    val dni: String = "",
+    val identification: String = "",
     val preferences: List<String> = emptyList(),
     val createdAt: String = ""
 )

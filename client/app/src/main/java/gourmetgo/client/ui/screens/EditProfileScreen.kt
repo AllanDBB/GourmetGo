@@ -43,11 +43,11 @@ fun EditProfileScreen(
     var name by remember { mutableStateOf(uiState.client?.name ?: "") }
     var email by remember { mutableStateOf(uiState.client?.email ?: "") }
     var phoneInput by remember { mutableStateOf(EditProfileUtils.cleanPhoneInput(uiState.client?.phone ?: "")) }
-    var dniInput by remember { mutableStateOf(EditProfileUtils.cleanDNIInput(uiState.client?.dni ?: "")) }
+    var dniInput by remember { mutableStateOf(EditProfileUtils.cleanDNIInput(uiState.client?.identification ?: "")) }
     var selectedPreferences by remember { mutableStateOf(uiState.client?.preferences ?: emptyList()) }
 
     var phoneDisplayValue by remember { mutableStateOf(EditProfileUtils.formatPhoneForDisplay(uiState.client?.phone ?: "")) }
-    var dniDisplayValue by remember { mutableStateOf(EditProfileUtils.formatDNIForDisplay(uiState.client?.dni ?: "")) }
+    var dniDisplayValue by remember { mutableStateOf(EditProfileUtils.formatDNIForDisplay(uiState.client?.identification ?: "")) }
 
     var nameError by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf("") }
@@ -56,6 +56,22 @@ fun EditProfileScreen(
 
     val availablePreferences = viewModel.getPreferences()
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadCurrentUser()
+    }
+
+    LaunchedEffect(uiState.client) {
+        uiState.client?.let { client ->
+            name = client.name
+            email = client.email
+            phoneInput = EditProfileUtils.cleanPhoneInput(client.phone)
+            dniInput = EditProfileUtils.cleanDNIInput(client.identification)
+            selectedPreferences = client.preferences
+            phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(client.phone)
+            dniDisplayValue = EditProfileUtils.formatDNIForDisplay(client.identification)
+        }
+    }
 
     fun validateFields(): Boolean {
         nameError = if (!EditProfileUtils.isValidName(name)) "El nombre solo puede contener letras y espacios" else ""
