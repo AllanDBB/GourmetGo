@@ -7,10 +7,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gourmetgo.client.data.repository.AuthRepository
-import gourmetgo.client.utils.PhoneUtils
+import gourmetgo.client.utils.EditProfileUtils
 import gourmetgo.client.viewmodel.statesUi.ProfileUiState
 import kotlinx.coroutines.launch
-import  gourmetgo.client.enums.Preferences
+import gourmetgo.client.enums.Preferences
 
 class ProfileViewModel(
     private val authRepository: AuthRepository
@@ -30,7 +30,7 @@ class ProfileViewModel(
             Log.d("ProfileViewModel", "Current user loaded: ${currentUser?.name}")
         } catch (e: Exception) {
             Log.e("ProfileViewModel", "Error loading current user", e)
-            uiState = uiState.copy(error = "Error al cargar perfil de usuario")
+            uiState = uiState.copy(error = "Error al cargar usuario")
         }
     }
 
@@ -42,22 +42,27 @@ class ProfileViewModel(
         preferences: List<String>
     ) {
         if (name.isBlank() || email.isBlank()) {
-            uiState = uiState.copy(error = "Nombre y correo son obligatorios")
+            uiState = uiState.copy(error = "Nombre y mail requerido")
             return
         }
 
-        if (!isValidEmail(email)) {
-            uiState = uiState.copy(error = "Formato de correo electrónico inválido")
+        if (!EditProfileUtils.isValidName(name)) {
+            uiState = uiState.copy(error = "Solo letras y espacios")
             return
         }
 
-        if (phone.isNotBlank() && !isValidPhone(phone)) {
-            uiState = uiState.copy(error = "El número telefónico debe tener 8 dígitos")
+        if (!EditProfileUtils.isValidEmail(email)) {
+            uiState = uiState.copy(error = "Mail no valido")
             return
         }
 
-        if (identification.isNotBlank() && !isValidIdentification(identification)) {
-            uiState = uiState.copy(error = "La identificación debe tener 9 dígitos")
+        if (phone.isNotBlank() && !EditProfileUtils.isValidPhone(phone)) {
+            uiState = uiState.copy(error = "El telefono deve tener 8 digitos")
+            return
+        }
+
+        if (identification.isNotBlank() && !EditProfileUtils.isValidDNI(identification)) {
+            uiState = uiState.copy(error = "La identificacion debe tener 9 digitos")
             return
         }
 
@@ -65,19 +70,16 @@ class ProfileViewModel(
 
         viewModelScope.launch {
             try {
-                // TODO: Implement actual API call for profile update
-                // For now, simulate API call
                 kotlinx.coroutines.delay(1000)
 
-                // Update local user data
                 val updatedUser = uiState.user?.copy(
                     name = name,
                     email = email,
                     phone = phone,
+                    dni = identification,
                     preferences = preferences
                 )
 
-                // Save updated user locally
                 updatedUser?.let { user ->
                     authRepository.updateUserLocally(user)
                     uiState = uiState.copy(
@@ -86,13 +88,13 @@ class ProfileViewModel(
                         updateSuccess = true,
                         error = null
                     )
-                    Log.d("ProfileViewModel", "Profile updated successfully for: ${user.name}")
+                    Log.d("ProfileViewModel", "Profile updated successfully for: ${user.phone}")
                 }
 
             } catch (e: Exception) {
                 uiState = uiState.copy(
                     isLoading = false,
-                    error = "Error al actualizar perfil: ${e.message}"
+                    error = "Error updating profile: ${e.message}"
                 )
                 Log.e("ProfileViewModel", "Error updating profile", e)
             }
@@ -108,31 +110,6 @@ class ProfileViewModel(
     }
 
     fun getPreferences(): List<String> {
-        val prefs = Preferences.entries
-        val str = mutableListOf<String>()
-
-        for (pref in prefs) {
-            str.add(pref.toString())
-        }
-
-        return str
+        return Preferences.entries.map { it.toString() }
     }
-
-
-
-    private fun isValidEmail(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    }
-
-    private fun isValidPhone(phone: String): Boolean {
-        return PhoneUtils.isValidPhone(phone)
-    }
-
-    private fun isValidIdentification(identification: String): Boolean {
-        val cleanId = identification.replace("[-\\s]".toRegex(), "")
-        return cleanId.length == 9 && cleanId.all { it.isDigit() }
-    }
-
-
-
 }
