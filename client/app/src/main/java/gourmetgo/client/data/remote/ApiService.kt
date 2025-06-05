@@ -7,6 +7,7 @@ import gourmetgo.client.data.models.dtos.ExperiencesResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 
 interface ApiService {
@@ -20,4 +21,7 @@ interface ApiService {
     @GET("users/me/")
     suspend fun getMe(@Header("Authorization") token: String,
     ): Client
+
+    @PATCH("user/")
+
 }

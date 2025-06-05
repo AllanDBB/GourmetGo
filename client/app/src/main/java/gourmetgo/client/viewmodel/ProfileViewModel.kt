@@ -70,7 +70,6 @@ class ProfileViewModel(
 
         viewModelScope.launch {
             try {
-                kotlinx.coroutines.delay(1000)
 
                 val updatedUser = uiState.client?.copy(
                     name = name,
@@ -81,7 +80,7 @@ class ProfileViewModel(
                 )
 
                 updatedUser?.let { user ->
-                    authRepository.updateUserLocally(user)
+                    authRepository.updateUser(user)
                     uiState = uiState.copy(
                         isLoading = false,
                         client = user,

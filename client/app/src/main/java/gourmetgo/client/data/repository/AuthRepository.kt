@@ -34,8 +34,10 @@ class AuthRepository(
     private suspend fun loginWithApi(email: String, password: String): Result<User> {
         return try {
             val response = apiService.login(LoginRequest(email, password))
+            Log.d("RESPUESTA","$response")
             sharedPrefs.saveToken(response.token)
-            sharedPrefs.saveUser(apiService.getMe(response.token))
+            val client = apiService.getMe("Bearer ${response.token}")
+            sharedPrefs.saveUser(client)
             Result.success(response.user)
         } catch (e: Exception) {
             Log.e("AuthRepository", "Error in API login", e)
@@ -70,12 +72,13 @@ class AuthRepository(
     }
 
 
-    fun updateUserLocally(user: Client) {
+    fun updateUser(user: Client) {
         try {
+
             sharedPrefs.saveUser(user)
-            Log.d("AuthRepository", "User updated locally: ${user.name}")
+            Log.d("AuthRepository", "User updated : ${user.name}")
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Error updating user locally", e)
+            Log.e("AuthRepository", "Error updating user ", e)
             throw Exception("Error al guardar datos localmente")
         }
     }
