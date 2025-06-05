@@ -26,11 +26,15 @@ import androidx.compose.ui.unit.sp
 import gourmetgo.client.viewmodel.AuthViewModel
 import gourmetgo.client.ui.components.LoginHeader
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.foundation.clickable 
+
 
 @Composable
 fun LoginScreen(
     viewModel: AuthViewModel,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+     onNavigateToRegister: () -> Unit = {}
+
 ) {
     var email by remember { mutableStateOf("juan@test.com") }
     var password by remember { mutableStateOf("123456") }
@@ -187,6 +191,7 @@ fun LoginScreen(
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable { onNavigateToRegister() }
         )
 
         Spacer(modifier = Modifier.height(16.dp))

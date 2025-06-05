@@ -79,4 +79,8 @@ dependencies {
 
     // JSON
     implementation(libs.gson)
+
+    //Images
+    implementation("io.coil-kt:coil-compose:2.4.0") 
+
 }

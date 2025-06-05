@@ -3,7 +3,8 @@ package gourmetgo.client.data.localStorage
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
-import gourmetgo.client.data.models.User
+import gourmetgo.client.data.models.Client
+import gourmetgo.client.data.models.Chef
 
 class SharedPrefsManager(context: Context) {
 
@@ -20,17 +21,30 @@ class SharedPrefsManager(context: Context) {
     }
 
     // USER
-    fun saveUser(user: User) {
-        val userJson = gson.toJson(user)
+    fun saveUser(client: Client) {
+        val userJson = gson.toJson(client)
         prefs.edit().putString("user_data", userJson).apply()
     }
 
-    fun getUser(): User? {
+    fun getUser(): Client? {
         val userJson = prefs.getString("user_data", null)
         return if (userJson != null) {
-            gson.fromJson(userJson, User::class.java)
+            gson.fromJson(userJson, Client::class.java)
         } else null
     }
+
+    fun saveChef(chef: Chef) {
+        val chefJson = gson.toJson(chef)
+        prefs.edit().putString("chef_data", chefJson).apply()
+    }
+
+    fun getChef(): Chef? {
+        val chefJson = prefs.getString("chef_data", null)
+        return if (chefJson != null) {
+            gson.fromJson(chefJson, Chef::class.java)
+        } else null
+    }
+
 
     fun isLoggedIn(): Boolean {
         return getToken() != null

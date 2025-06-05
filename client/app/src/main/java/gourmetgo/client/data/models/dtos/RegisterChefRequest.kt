@@ -1,0 +1,15 @@
+package gourmetgo.client.data.requests
+
+data class RegisterChefRequest(
+    val name: String,
+    val contactPerson: String,
+    val email: String,
+    val phone: String,
+    val location: String,
+    val cuisinetype: String,
+    val password: String,
+    val photoUrl: String,
+    val bio: String,
+    val experience: String,
+    val sociallinks: List<String>
+)

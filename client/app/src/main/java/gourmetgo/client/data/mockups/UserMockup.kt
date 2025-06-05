@@ -1,7 +1,8 @@
 package gourmetgo.client.data.mockups
 
 import gourmetgo.client.data.models.User
-
+import gourmetgo.client.data.models.Client
+import gourmetgo.client.data.models.Chef
 
 object UserMockup {
 
@@ -10,65 +11,117 @@ object UserMockup {
             id = "user_001",
             name = "Juan Pérez",
             email = "juan@test.com",
-            phone = "88887777",
-            role = "user",
-            avatar = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
-            preferences = listOf("Italiana", "Vegana", "Mediterránea"),
-            createdAt = "2024-01-15T10:30:00Z"
+            role = "user"
         ),
         User(
+            id = "user_002", 
+            name = "Ana Rodríguez",
+            email = "ana@test.com",
+            role = "user"
+        ),
+        User(
+            id = "user_003",
+            name = "Carlos López",
+            email = "carlos@test.com", 
+            role = "user"
+        ),
+        
+        User(
             id = "chef_001",
-            name = "Chef María González",
-            email = "maria@chef.com",
-            phone = "99998888",
-            role = "chef",
-            avatar = "https://images.unsplash.com/photo-1559548331-f9cb98001426?w=150",
-            preferences = listOf("Fusión", "Gourmet", "Internacional"),
-            createdAt = "2024-01-10T08:15:00Z"
+            name = "Restaurante La Cocina de María",
+            email = "maria@lacocinademaria.com",
+            role = "chef"
         ),
         User(
             id = "chef_002",
-            name = "Restaurante La Sabrosa",
-            email = "info@lasabrosa.com",
-            phone = "22445566",
-            role = "chef",
-            avatar = "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=150",
-            preferences = listOf("Tradicional", "Costarricense"),
-            createdAt = "2024-01-05T14:20:00Z"
+            name = "Chef Italiano Giuseppe", 
+            email = "giuseppe@italianoautentico.com",
+            role = "chef"
         ),
         User(
-            id = "user_002",
-            name = "Ana Rodríguez",
-            email = "ana@test.com",
-            phone = "77776666",
-            role = "user",
-            avatar = "https://images.unsplash.com/photo-1494790108755-2616b332c3db?w=150",
-            preferences = listOf("Asiática", "Saludable", "Vegana"),
-            createdAt = "2024-01-20T16:45:00Z"
+            id = "chef_003",
+            name = "Sushi Master Tanaka",
+            email = "tanaka@sushimaster.com",
+            role = "chef"
+        ),
+        User(
+            id = "chef_004",
+            name = "Panadería Artesanal El Horno",
+            email = "carlos@elhorno.com",
+            role = "chef"
         )
     )
 
     private val testCredentials = mapOf(
+        // Usuarios normales
         "juan@test.com" to "abcdeF.1234",
-        "maria@chef.com" to "aaaaaa1234.",
-        "info@lasabrosa.com" to "123456",
-        "ana@test.com" to "123456"
+        "ana@test.com" to "123456", 
+        "carlos@test.com" to "123456",
+        
+        // Chefs
+        "maria@lacocinademaria.com" to "password123.",
+        "giuseppe@italianoautentico.com" to "pasta123456.",
+        "tanaka@sushimaster.com" to "sushi789123.",
+        "carlos@elhorno.com" to "bread456789."
     )
 
-    fun getAllUsers(): List<User> = testUsers
-
-    private fun getUserByEmail(email: String): User? =
-        testUsers.find { it.email.equals(email, ignoreCase = true) }
-
-    fun getUserById(id: String): User? =
-        testUsers.find { it.id == id }
-
     fun validateCredentials(email: String, password: String): User? {
-        return if (testCredentials[email] == password) {
-            getUserByEmail(email)
+        val user = getUserByEmail(email)
+        val storedPassword = testCredentials[email]
+        
+        return if (user != null && storedPassword == password) {
+            user
         } else null
     }
 
-    fun getUsersByRole(role: String): List<User> =
-        testUsers.filter { it.role.equals(role, ignoreCase = true) }
+
+    private fun getUserByEmail(email: String): User? {
+        return testUsers.find { it.email.equals(email, ignoreCase = true) }
+    }
+
+    fun getAllUsers(): List<User> = testUsers
+
+
+    fun getUsersByRole(role: String): List<User> {
+        return testUsers.filter { it.role == role }
+    }
+
+    fun mapUserToClient(user: User): Client? {
+        if (user.role != "user") return null
+        
+        return ClientMockup.getAllUsers().find { 
+            it.email.equals(user.email, ignoreCase = true) 
+        }
+    }
+
+    fun mapUserToChef(user: User): Chef? {
+        if (user.role != "chef") return null
+        
+        return ChefMockup.getAllChefs().find {
+            it.email.equals(user.email, ignoreCase = true)
+        }
+    }
+
+    fun emailExists(email: String): Boolean {
+        return testUsers.any { it.email.equals(email, ignoreCase = true) }
+    }
+
+
+    fun simulateUserRegistration(email: String, name: String): User {
+        return User(
+            id = "user_${System.currentTimeMillis()}",
+            name = name,
+            email = email,
+            role = "user"
+        )
+    }
+    
+    fun simulateChefRegistration(email: String, name: String): User {
+        return User(
+            id = "chef_${System.currentTimeMillis()}",
+            name = name, 
+            email = email,
+            role = "chef"
+        )
+    }
 }
