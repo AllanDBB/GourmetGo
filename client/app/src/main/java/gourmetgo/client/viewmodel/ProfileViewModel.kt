@@ -70,7 +70,6 @@ class ProfileViewModel(
 
         viewModelScope.launch {
             try {
-
                 val updatedUser = uiState.client?.copy(
                     name = name,
                     email = email,
@@ -80,22 +79,32 @@ class ProfileViewModel(
                 )
 
                 updatedUser?.let { user ->
-                    authRepository.updateUser(user)
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        client = user,
-                        updateSuccess = true,
-                        error = null
-                    )
-                    Log.d("ProfileViewModel", "Profile updated successfully for: ${user.name}")
+                    // Call the API to update the profile
+                    authRepository.updateUserProfile(user)
+                        .onSuccess { apiUpdatedUser ->
+                            uiState = uiState.copy(
+                                isLoading = false,
+                                client = apiUpdatedUser,
+                                updateSuccess = true,
+                                error = null
+                            )
+                            Log.d("ProfileViewModel", "Profile updated successfully via API: ${apiUpdatedUser.name}")
+                        }
+                        .onFailure { error ->
+                            uiState = uiState.copy(
+                                isLoading = false,
+                                error = error.message ?: "Error desconocido al actualizar perfil"
+                            )
+                            Log.e("ProfileViewModel", "Error updating profile via API", error)
+                        }
                 }
 
             } catch (e: Exception) {
                 uiState = uiState.copy(
                     isLoading = false,
-                    error = "Error actualizando perfil: ${e.message}"
+                    error = "Error inesperado: ${e.message}"
                 )
-                Log.e("ProfileViewModel", "Error updating profile", e)
+                Log.e("ProfileViewModel", "Unexpected error updating profile", e)
             }
         }
     }
