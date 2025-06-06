@@ -53,7 +53,7 @@ class SharedPrefsManager(context: Context) {
         prefs.edit().putString("client_data", chefJson).apply()
     }
 
-    fun saveClient(): Client? {
+    fun getClient(): Client? {
         val clientJson = prefs.getString("client_data", null)
         return if (clientJson != null) {
             gson.fromJson(clientJson, Client::class.java)

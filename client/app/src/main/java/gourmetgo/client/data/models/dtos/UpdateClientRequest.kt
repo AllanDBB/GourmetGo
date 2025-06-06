@@ -1,6 +1,6 @@
 package gourmetgo.client.data.models.dtos
 
-data class UpdateUserRequest(
+data class UpdateClientRequest(
     val email: String?,
     val phone: String?,
     val identification: String?,

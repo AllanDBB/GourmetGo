@@ -1,10 +1,11 @@
 package gourmetgo.client.data.remote
 
+import gourmetgo.client.data.models.Chef
 import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.dtos.LoginRequest
 import gourmetgo.client.data.models.dtos.LoginResponse
 import gourmetgo.client.data.models.dtos.ExperiencesResponse
-import gourmetgo.client.data.models.dtos.UpdateUserRequest
+import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -20,11 +21,14 @@ interface ApiService {
     suspend fun getExperiences(): ExperiencesResponse
 
     @GET("users/me")
-    suspend fun getMe(@Header("Authorization") token: String): Client
+    suspend fun getClientMe(@Header("Authorization") token: String): Client
+
+    @GET("users/me")
+    suspend fun getChefMe(@Header("Authorization") token: String): Chef
 
     @PUT("users/me")
-    suspend fun updateProfile(
+    suspend fun updateClientProfile(
         @Header("Authorization") token: String,
-        @Body request: UpdateUserRequest
+        @Body request: UpdateClientRequest
     ): Client
 }
