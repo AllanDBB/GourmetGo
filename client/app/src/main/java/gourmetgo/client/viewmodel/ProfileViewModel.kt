@@ -7,7 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gourmetgo.client.AppConfig
-import gourmetgo.client.data.localStorage.SharedPrefsManager
 import gourmetgo.client.data.repository.AuthRepository
 import gourmetgo.client.utils.EditProfileUtils
 import gourmetgo.client.viewmodel.statesUi.ProfileUiState
@@ -199,12 +198,14 @@ class ProfileViewModel(
 
         viewModelScope.launch {
             try {
+                //TODO: CONFIG CLOUNDRY
                 val updatedChef = currentChef.copy(
                     name = name,
                     email = email,
                     phone = phone,
                     contactPerson = contactPerson,
                     location = location,
+                    photoUrl = "https://res.cloudinary.com/",
                     preferences = listOf(cuisineType)
                 )
 
@@ -223,7 +224,7 @@ class ProfileViewModel(
                     .onFailure { error ->
                         uiState = uiState.copy(
                             isLoading = false,
-                            error = error.message ?: "Error actualizando perfil de chef"
+                            error =  "Error actualizando perfil de chef"
                         )
                         if (AppConfig.ENABLE_LOGGING) {
                             Log.e("ProfileViewModel", "Error updating chef profile", error)
@@ -251,38 +252,6 @@ class ProfileViewModel(
 
     fun getPreferences(): List<String> {
         return Preferences.entries.map { it.toString() }
-    }
-
-    fun getCurrentUserName(): String {
-        return uiState.client?.name ?: uiState.chef?.name ?: ""
-    }
-
-    fun getCurrentUserEmail(): String {
-        return uiState.client?.email ?: uiState.chef?.email ?: ""
-    }
-
-    fun getCurrentUserPhone(): String {
-        return uiState.client?.phone ?: uiState.chef?.phone ?: ""
-    }
-
-    fun getCurrentUserIdentification(): String {
-        return uiState.client?.identification ?: ""
-    }
-
-    fun getCurrentUserPreferences(): List<String> {
-        return uiState.client?.preferences ?: emptyList()
-    }
-
-    fun getCurrentChefContactPerson(): String {
-        return uiState.chef?.contactPerson ?: ""
-    }
-
-    fun getCurrentChefLocation(): String {
-        return uiState.chef?.location ?: ""
-    }
-
-    fun getCurrentChefCuisineType(): String {
-        return uiState.chef?.preferences?.firstOrNull() ?: ""
     }
 
     fun isChef(): Boolean {

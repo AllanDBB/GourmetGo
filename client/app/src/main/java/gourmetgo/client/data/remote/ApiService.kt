@@ -35,7 +35,7 @@ interface ApiService {
         @Body request: UpdateClientRequest
     ): UpdateUserResponse
 
-    @PUT("chef/me")
+    @PUT("chefs/me")
     suspend fun updateChefProfile(
         @Header("Authorization") token: String,
         @Body request: UpdateChefRequest

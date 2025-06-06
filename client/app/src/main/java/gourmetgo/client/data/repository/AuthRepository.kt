@@ -185,16 +185,15 @@ class AuthRepository(
                 photoUrl = chef.photoUrl,
                 cuisineType = chef.preferences[0]
             )
-
-            val updatedChef = apiService.updateChefProfile("Bearer $token", updateRequest).chef
-
-            sharedPrefs.saveChef(updatedChef)
+            val updatedChef = apiService.updateChefProfile("Bearer ${sharedPrefs.getToken()}", updateRequest).chef
+            //TODO:API return something that does not match with chef model
+            sharedPrefs.saveChef(chef)
 
             val currentUser = sharedPrefs.getUser()
             currentUser?.let { user ->
                 val updatedUser = user.copy(
-                    name = updatedChef.name,
-                    email = updatedChef.email
+                    name = chef.name,
+                    email = chef.email
                 )
                 sharedPrefs.saveUser(updatedUser)
             }

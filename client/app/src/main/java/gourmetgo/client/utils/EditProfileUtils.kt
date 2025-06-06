@@ -105,7 +105,25 @@ object EditProfileUtils {
         return input.replace(Regex("[^0-9]"), "")
     }
 
-    fun cleanNameInput(input: String): String {
-        return input.filter { it.isLetter() || it.isWhitespace() }
+
+
+    fun isValidContactPerson(contactPerson: String): Boolean {
+        if (contactPerson.isBlank()) return false
+        return contactPerson.trim().length >= 2 &&
+                contactPerson.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$"))
     }
+
+    fun isValidLocation(location: String): Boolean {
+        if (location.isBlank()) return false
+        return location.trim().length in 5..100
+    }
+
+    fun isValidCuisineType(cuisineType: String): Boolean {
+        if (cuisineType.isBlank()) return false
+        return cuisineType.trim().length in 3..50 &&
+                cuisineType.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s,]+$"))
+    }
+
+
+
 }

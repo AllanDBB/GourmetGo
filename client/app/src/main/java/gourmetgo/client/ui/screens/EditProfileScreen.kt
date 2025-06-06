@@ -3,7 +3,6 @@ package gourmetgo.client.ui.screens
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -62,9 +61,46 @@ fun EditProfileScreen(
     var emailError by remember { mutableStateOf("") }
     var phoneError by remember { mutableStateOf("") }
     var dniError by remember { mutableStateOf("") }
+    var contactPersonError by remember { mutableStateOf("") }
+    var locationError by remember { mutableStateOf("") }
+    var cuisineTypeError by remember { mutableStateOf("") }
 
     val availablePreferences = viewModel.getPreferences()
     val scrollState = rememberScrollState()
+
+    fun validateChefFields(): Boolean {
+        contactPersonError = if (!EditProfileUtils.isValidContactPerson(contactPerson)) {
+            "La persona de contacto debe tener al menos 2 caracteres y solo letras"
+        } else ""
+
+        locationError = if (!EditProfileUtils.isValidLocation(location)) {
+            "La ubicación debe tener entre 5 y 100 caracteres"
+        } else ""
+
+        cuisineTypeError = if (!EditProfileUtils.isValidCuisineType(cuisineType)) {
+            "El tipo de cocina debe tener entre 3 y 50 caracteres"
+        } else ""
+
+        return contactPersonError.isEmpty() && locationError.isEmpty() && cuisineTypeError.isEmpty()
+    }
+
+    fun validateFields(): Boolean {
+        emailError = if (!EditProfileUtils.isValidEmail(email)) "Formato de correo electrónico inválido" else ""
+        phoneError = if (rawPhoneInput.isNotEmpty() && !EditProfileUtils.isValidPhone(rawPhoneInput)) "El teléfono debe tener 8 dígitos" else ""
+
+        val basicValidation = emailError.isEmpty() && phoneError.isEmpty()
+
+        return if (isChef) {
+            basicValidation && validateChefFields()
+        } else {
+            if (isClient) {
+                dniError = if (dniInput.isNotEmpty() && !EditProfileUtils.isValidDNI(dniInput)) "La cédula debe tener 9 dígitos" else ""
+                basicValidation && dniError.isEmpty()
+            } else {
+                basicValidation
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.loadCurrentUser()
@@ -95,17 +131,6 @@ fun EditProfileScreen(
                 }
             }
         }
-    }
-
-    fun validateFields(): Boolean {
-        emailError = if (!EditProfileUtils.isValidEmail(email)) "Formato de correo electrónico inválido" else ""
-        phoneError = if (rawPhoneInput.isNotEmpty() && !EditProfileUtils.isValidPhone(rawPhoneInput)) "El teléfono debe tener 8 dígitos" else ""
-
-        if (isClient) {
-            dniError = if (dniInput.isNotEmpty() && !EditProfileUtils.isValidDNI(dniInput)) "La cédula debe tener 9 dígitos" else ""
-        }
-
-        return emailError.isEmpty() && phoneError.isEmpty() && dniError.isEmpty()
     }
 
     LaunchedEffect(uiState.error) {
@@ -213,7 +238,6 @@ fun EditProfileScreen(
                 focusManager = focusManager
             )
 
-            // Campo especial para teléfono con formato dinámico
             Text(
                 text = "Teléfono",
                 fontSize = 16.sp,
@@ -342,28 +366,58 @@ fun EditProfileScreen(
                 ProfileTextField(
                     label = "Persona de Contacto",
                     value = contactPerson,
-                    onValueChange = { contactPerson = it },
+                    onValueChange = {
+                        contactPerson = it
+                        contactPersonError = ""
+                    },
                     placeholder = "Nombre del encargado",
+                    isError = contactPersonError.isNotEmpty(),
+                    errorMessage = contactPersonError,
                     keyboardType = KeyboardType.Text,
-                    focusManager = focusManager
+                    focusManager = focusManager,
+                    onFocusLost = {
+                        if (!EditProfileUtils.isValidContactPerson(contactPerson)) {
+                            contactPersonError = "La persona de contacto debe tener al menos 2 caracteres y solo letras"
+                        }
+                    }
                 )
 
                 ProfileTextField(
                     label = "Ubicación",
                     value = location,
-                    onValueChange = { location = it },
+                    onValueChange = {
+                        location = it
+                        locationError = ""
+                    },
                     placeholder = "Dirección del restaurante",
+                    isError = locationError.isNotEmpty(),
+                    errorMessage = locationError,
                     keyboardType = KeyboardType.Text,
-                    focusManager = focusManager
+                    focusManager = focusManager,
+                    onFocusLost = {
+                        if (!EditProfileUtils.isValidLocation(location)) {
+                            locationError = "La ubicación debe tener entre 5 y 100 caracteres"
+                        }
+                    }
                 )
 
                 ProfileTextField(
                     label = "Tipo de Cocina",
                     value = cuisineType,
-                    onValueChange = { cuisineType = it },
+                    onValueChange = {
+                        cuisineType = it
+                        cuisineTypeError = ""
+                    },
                     placeholder = "Ej: Italiana, Asiática, Fusión",
+                    isError = cuisineTypeError.isNotEmpty(),
+                    errorMessage = cuisineTypeError,
                     keyboardType = KeyboardType.Text,
-                    focusManager = focusManager
+                    focusManager = focusManager,
+                    onFocusLost = {
+                        if (!EditProfileUtils.isValidCuisineType(cuisineType)) {
+                            cuisineTypeError = "El tipo de cocina debe tener entre 3 y 50 caracteres"
+                        }
+                    }
                 )
             }
 
