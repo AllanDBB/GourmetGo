@@ -6,8 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -17,18 +15,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gourmetgo.client.utils.EditProfileUtils
+import gourmetgo.client.ui.components.ProfileTextField
 import gourmetgo.client.viewmodel.ProfileViewModel
 
 @Composable
@@ -40,27 +36,22 @@ fun EditProfileScreen(
     val focusManager = LocalFocusManager.current
     val uiState = viewModel.uiState
 
-    // ✅ Detectar si es cliente o chef
     val isChef = viewModel.isChef()
     val isClient = viewModel.isClient()
 
-    // Estados comunes
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phoneInput by remember { mutableStateOf("") }
     var phoneDisplayValue by remember { mutableStateOf("") }
 
-    // Estados específicos para cliente
     var dniInput by remember { mutableStateOf("") }
     var dniDisplayValue by remember { mutableStateOf("") }
     var selectedPreferences by remember { mutableStateOf(emptyList<String>()) }
 
-    // Estados específicos para chef
     var contactPerson by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var cuisineType by remember { mutableStateOf("") }
 
-    // Estados de error
     var nameError by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf("") }
     var phoneError by remember { mutableStateOf("") }
@@ -69,7 +60,6 @@ fun EditProfileScreen(
     val availablePreferences = viewModel.getPreferences()
     val scrollState = rememberScrollState()
 
-    // ✅ Cargar datos iniciales basados en el tipo de usuario
     LaunchedEffect(Unit) {
         viewModel.loadCurrentUser()
     }
@@ -194,7 +184,6 @@ fun EditProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ✅ Campo Nombre (común para ambos)
             ProfileTextField(
                 label = if (isChef) "Nombre del Restaurante" else "Nombre Completo",
                 value = name,
@@ -212,7 +201,6 @@ fun EditProfileScreen(
                 focusManager = focusManager
             )
 
-            // ✅ Campo Email (común para ambos)
             ProfileTextField(
                 label = "Email",
                 value = email,
@@ -227,7 +215,6 @@ fun EditProfileScreen(
                 focusManager = focusManager
             )
 
-            // ✅ Campo Teléfono (común para ambos)
             ProfileTextField(
                 label = "Teléfono",
                 value = phoneDisplayValue,
@@ -252,7 +239,6 @@ fun EditProfileScreen(
                 }
             )
 
-            // ✅ Campos específicos para CLIENTE
             if (isClient) {
                 ProfileTextField(
                     label = "Cédula",
@@ -278,7 +264,6 @@ fun EditProfileScreen(
                     }
                 )
 
-                // Preferencias gastronómicas
                 Text(
                     text = "Preferencias Gastronómicas (opcional)",
                     fontSize = 16.sp,
@@ -289,7 +274,6 @@ fun EditProfileScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Grid de preferencias
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -323,7 +307,6 @@ fun EditProfileScreen(
                 }
             }
 
-            // ✅ Campos específicos para CHEF
             if (isChef) {
                 ProfileTextField(
                     label = "Persona de Contacto",
@@ -355,7 +338,6 @@ fun EditProfileScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // ✅ Botón Guardar
             Button(
                 onClick = {
                     if (validateFields()) {
@@ -410,60 +392,4 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
-}
-
-// ✅ Componente auxiliar para campos de texto
-@Composable
-fun ProfileTextField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-    isError: Boolean = false,
-    errorMessage: String = "",
-    keyboardType: KeyboardType = KeyboardType.Text,
-    focusManager: androidx.compose.ui.focus.FocusManager,
-    onFocusLost: () -> Unit = {}
-) {
-    Text(
-        text = label,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Medium,
-        modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Start
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = { Text(placeholder, fontSize = 14.sp) },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType,
-            imeAction = ImeAction.Next
-        ),
-        keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-        ),
-        modifier = modifier
-            .fillMaxWidth()
-            .onFocusChanged { focusState ->
-                if (!focusState.isFocused && value.isNotEmpty()) {
-                    onFocusLost()
-                }
-            },
-        singleLine = true,
-        isError = isError,
-        supportingText = if (errorMessage.isNotEmpty()) {
-            { Text(errorMessage, color = MaterialTheme.colorScheme.error) }
-        } else null,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline
-        )
-    )
-
-    Spacer(modifier = Modifier.height(16.dp))
 }

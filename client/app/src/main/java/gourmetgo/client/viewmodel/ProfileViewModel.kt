@@ -61,7 +61,6 @@ class ProfileViewModel(
         }
     }
 
-    // ✅ Función específica para actualizar perfil de CLIENTE
     fun updateClientProfile(
         name: String,
         email: String,
@@ -69,7 +68,6 @@ class ProfileViewModel(
         identification: String,
         preferences: List<String>
     ) {
-        // Validaciones básicas
         if (name.isBlank() || email.isBlank()) {
             uiState = uiState.copy(error = "Nombre y correo son obligatorios")
             return
@@ -146,7 +144,6 @@ class ProfileViewModel(
         }
     }
 
-    // ✅ Función específica para actualizar perfil de CHEF/RESTAURANTE
     fun updateChefProfile(
         name: String,
         email: String,
@@ -155,7 +152,6 @@ class ProfileViewModel(
         location: String,
         cuisineType: String
     ) {
-        // Validaciones básicas
         if (name.isBlank() || email.isBlank()) {
             uiState = uiState.copy(error = "Nombre y correo son obligatorios")
             return
@@ -240,7 +236,6 @@ class ProfileViewModel(
         return Preferences.entries.map { it.toString() }
     }
 
-    // ✅ Funciones helper para obtener datos comunes
     fun getCurrentUserName(): String {
         return uiState.client?.name ?: uiState.chef?.name ?: ""
     }
@@ -261,7 +256,6 @@ class ProfileViewModel(
         return uiState.client?.preferences ?: emptyList()
     }
 
-    // ✅ Chef specific getters
     fun getCurrentChefContactPerson(): String {
         return uiState.chef?.contactPerson ?: ""
     }
