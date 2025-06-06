@@ -6,6 +6,7 @@ import gourmetgo.client.data.models.dtos.ExperiencesResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface ApiService {
 
@@ -14,4 +15,7 @@ interface ApiService {
 
     @GET("experiences")
     suspend fun getExperiences(): ExperiencesResponse
+
+    @GET("chefs/{id}/experiences")
+    suspend fun getChefExperiences(@Path("id") id: String): ExperiencesResponse
 }
