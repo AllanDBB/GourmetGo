@@ -41,9 +41,11 @@ class AuthRepository(
 
                 sharedPrefs.saveToken(fakeToken)
                 sharedPrefs.saveUser(user)
+                Log.d("AuthRepository", "Usuario guardado en prefs: ${user.id} - ${user.name}")
 
                 Result.success(user)
             } else {
+                Log.e("AuthRepository", "Bad credentials for mockup login: $email")
                 Result.failure(Exception("Bad credentials"))
             }
         } catch (e: Exception) {
