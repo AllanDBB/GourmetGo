@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gourmetgo.client.AppConfig
+import gourmetgo.client.data.localStorage.SharedPrefsManager
 import gourmetgo.client.data.repository.AuthRepository
 import gourmetgo.client.utils.EditProfileUtils
 import gourmetgo.client.viewmodel.statesUi.ProfileUiState

@@ -146,7 +146,7 @@ class AuthRepository(
                 preferences = client.preferences
             )
 
-            val updatedClient = apiService.updateClientProfile("Bearer $token", updateRequest)
+            val updatedClient = apiService.updateClientProfile("Bearer $token", updateRequest).user
 
             sharedPrefs.saveClient(updatedClient)
 
@@ -160,7 +160,7 @@ class AuthRepository(
             }
 
             if (AppConfig.ENABLE_LOGGING)
-                Log.d("AuthRepository", "User updated via API: ${updatedClient.name}")
+                Log.d("AuthRepository", "User updated via API: ${sharedPrefs.getUser()?.name}")
             Result.success(updatedClient)
 
         } catch (e: Exception) {
@@ -186,7 +186,7 @@ class AuthRepository(
                 cuisineType = chef.preferences[0]
             )
 
-            val updatedChef = apiService.updateChefProfile("Bearer $token", updateRequest)
+            val updatedChef = apiService.updateChefProfile("Bearer $token", updateRequest).chef
 
             sharedPrefs.saveChef(updatedChef)
 
@@ -200,7 +200,7 @@ class AuthRepository(
             }
 
             if (AppConfig.ENABLE_LOGGING)
-                Log.d("AuthRepository", "User updated via API: ${updatedChef.name}")
+                Log.d("AuthRepository", "User updated via API: ${ sharedPrefs.getUser()?.name}")
             Result.success(updatedChef)
 
         } catch (e: Exception) {
