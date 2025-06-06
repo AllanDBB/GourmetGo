@@ -3,9 +3,12 @@ package gourmetgo.client.ui.screens
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -15,16 +18,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gourmetgo.client.utils.EditProfileUtils
 import gourmetgo.client.ui.components.ProfileTextField
+import gourmetgo.client.ui.components.FilterChip
 import gourmetgo.client.viewmodel.ProfileViewModel
 
 @Composable
@@ -41,7 +48,7 @@ fun EditProfileScreen(
 
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var phoneInput by remember { mutableStateOf("") }
+    var rawPhoneInput by remember { mutableStateOf("") }
     var phoneDisplayValue by remember { mutableStateOf("") }
 
     var dniInput by remember { mutableStateOf("") }
@@ -52,7 +59,6 @@ fun EditProfileScreen(
     var location by remember { mutableStateOf("") }
     var cuisineType by remember { mutableStateOf("") }
 
-    var nameError by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf("") }
     var phoneError by remember { mutableStateOf("") }
     var dniError by remember { mutableStateOf("") }
@@ -70,7 +76,7 @@ fun EditProfileScreen(
                 uiState.client?.let { client ->
                     name = client.name
                     email = client.email
-                    phoneInput = EditProfileUtils.cleanPhoneInput(client.phone)
+                    rawPhoneInput = EditProfileUtils.cleanPhoneInput(client.phone)
                     dniInput = EditProfileUtils.cleanDNIInput(client.identification)
                     selectedPreferences = client.preferences
                     phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(client.phone)
@@ -81,7 +87,7 @@ fun EditProfileScreen(
                 uiState.chef?.let { chef ->
                     name = chef.name
                     email = chef.email
-                    phoneInput = EditProfileUtils.cleanPhoneInput(chef.phone)
+                    rawPhoneInput = EditProfileUtils.cleanPhoneInput(chef.phone)
                     phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(chef.phone)
                     contactPerson = chef.contactPerson
                     location = chef.location
@@ -92,15 +98,14 @@ fun EditProfileScreen(
     }
 
     fun validateFields(): Boolean {
-        nameError = if (!EditProfileUtils.isValidName(name)) "El nombre solo puede contener letras y espacios" else ""
         emailError = if (!EditProfileUtils.isValidEmail(email)) "Formato de correo electrónico inválido" else ""
-        phoneError = if (phoneInput.isNotEmpty() && !EditProfileUtils.isValidPhone(phoneInput)) "El teléfono debe tener 8 dígitos" else ""
+        phoneError = if (rawPhoneInput.isNotEmpty() && !EditProfileUtils.isValidPhone(rawPhoneInput)) "El teléfono debe tener 8 dígitos" else ""
 
         if (isClient) {
             dniError = if (dniInput.isNotEmpty() && !EditProfileUtils.isValidDNI(dniInput)) "La cédula debe tener 9 dígitos" else ""
         }
 
-        return nameError.isEmpty() && emailError.isEmpty() && phoneError.isEmpty() && dniError.isEmpty()
+        return emailError.isEmpty() && phoneError.isEmpty() && dniError.isEmpty()
     }
 
     LaunchedEffect(uiState.error) {
@@ -153,7 +158,6 @@ fun EditProfileScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ✅ Avatar
             Box(
                 modifier = Modifier
                     .size(120.dp)
@@ -182,24 +186,18 @@ fun EditProfileScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            ProfileTextField(
-                label = if (isChef) "Nombre del Restaurante" else "Nombre Completo",
-                value = name,
-                onValueChange = { newValue ->
-                    val cleaned = EditProfileUtils.cleanNameInput(newValue)
-                    if (cleaned.length <= 50) {
-                        name = cleaned
-                        nameError = ""
-                    }
-                },
-                placeholder = if (isChef) "Nombre del restaurante" else "Tu nombre completo",
-                isError = nameError.isNotEmpty(),
-                errorMessage = nameError,
-                keyboardType = KeyboardType.Text,
-                focusManager = focusManager
+            Text(
+                text = name,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             ProfileTextField(
                 label = "Email",
@@ -215,29 +213,62 @@ fun EditProfileScreen(
                 focusManager = focusManager
             )
 
-            ProfileTextField(
-                label = "Teléfono",
-                value = phoneDisplayValue,
+            // Campo especial para teléfono con formato dinámico
+            Text(
+                text = "Teléfono",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Start
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            var isPhoneFocused by remember { mutableStateOf(false) }
+
+            OutlinedTextField(
+                value = if (isPhoneFocused) rawPhoneInput else phoneDisplayValue,
                 onValueChange = { newValue ->
                     val cleanInput = EditProfileUtils.cleanPhoneInput(newValue)
                     if (cleanInput.length <= 8) {
-                        phoneInput = cleanInput
-                        phoneDisplayValue = cleanInput
+                        rawPhoneInput = cleanInput
+                        if (!isPhoneFocused && cleanInput.isNotEmpty()) {
+                            phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(cleanInput)
+                        } else if (cleanInput.isEmpty()) {
+                            phoneDisplayValue = ""
+                        }
                         phoneError = ""
                     }
                 },
-                placeholder = "+506 8888 8888",
+                placeholder = { Text("+506 8888 8888", fontSize = 14.sp) },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        isPhoneFocused = focusState.isFocused
+                        if (!focusState.isFocused && rawPhoneInput.isNotEmpty()) {
+                            phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(rawPhoneInput)
+                            phoneError = if (!EditProfileUtils.isValidPhone(rawPhoneInput)) "El teléfono debe tener 8 dígitos" else ""
+                        }
+                    },
+                singleLine = true,
                 isError = phoneError.isNotEmpty(),
-                errorMessage = phoneError,
-                keyboardType = KeyboardType.Phone,
-                focusManager = focusManager,
-                onFocusLost = {
-                    if (phoneInput.isNotEmpty()) {
-                        phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(phoneInput)
-                        phoneError = if (!EditProfileUtils.isValidPhone(phoneInput)) "El teléfono debe tener 8 dígitos" else ""
-                    }
-                }
+                supportingText = if (phoneError.isNotEmpty()) {
+                    { Text(phoneError, color = MaterialTheme.colorScheme.error) }
+                } else null,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             if (isClient) {
                 ProfileTextField(
@@ -346,7 +377,7 @@ fun EditProfileScreen(
                                 viewModel.updateClientProfile(
                                     name = name.trim(),
                                     email = email.trim(),
-                                    phone = EditProfileUtils.phoneToApiFormat(phoneInput),
+                                    phone = EditProfileUtils.phoneToApiFormat(rawPhoneInput),
                                     identification = EditProfileUtils.dniToApiFormat(dniInput),
                                     preferences = selectedPreferences
                                 )
@@ -355,7 +386,7 @@ fun EditProfileScreen(
                                 viewModel.updateChefProfile(
                                     name = name.trim(),
                                     email = email.trim(),
-                                    phone = EditProfileUtils.phoneToApiFormat(phoneInput),
+                                    phone = EditProfileUtils.phoneToApiFormat(rawPhoneInput),
                                     contactPerson = contactPerson.trim(),
                                     location = location.trim(),
                                     cuisineType = cuisineType.trim()
@@ -364,7 +395,7 @@ fun EditProfileScreen(
                         }
                     }
                 },
-                enabled = !uiState.isLoading && name.isNotBlank() && email.isNotBlank(),
+                enabled = !uiState.isLoading && email.isNotBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),

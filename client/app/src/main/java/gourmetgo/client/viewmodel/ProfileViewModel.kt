@@ -35,13 +35,23 @@ class ProfileViewModel(
 
             when {
                 currentClient != null -> {
-                    uiState = uiState.copy(client = currentClient, chef = null)
+                    uiState = uiState.copy(
+                        client = currentClient,
+                        chef = null,
+                        isLoading = false,
+                        error = null
+                    )
                     if (AppConfig.ENABLE_LOGGING) {
                         Log.d("ProfileViewModel", "Current client loaded: ${currentClient.name}")
                     }
                 }
                 currentChef != null -> {
-                    uiState = uiState.copy(chef = currentChef, client = null)
+                    uiState = uiState.copy(
+                        chef = currentChef,
+                        client = null,
+                        isLoading = false,
+                        error = null
+                    )
                     if (AppConfig.ENABLE_LOGGING) {
                         Log.d("ProfileViewModel", "Current chef loaded: ${currentChef.name}")
                     }
@@ -50,14 +60,20 @@ class ProfileViewModel(
                     if (AppConfig.ENABLE_LOGGING) {
                         Log.e("ProfileViewModel", "No user data found")
                     }
-                    uiState = uiState.copy(error = "No se encontraron datos del usuario")
+                    uiState = uiState.copy(
+                        error = "No se encontraron datos del usuario",
+                        isLoading = false
+                    )
                 }
             }
         } catch (e: Exception) {
             if (AppConfig.ENABLE_LOGGING) {
                 Log.e("ProfileViewModel", "Error loading current user", e)
             }
-            uiState = uiState.copy(error = "Error cargando perfil de usuario")
+            uiState = uiState.copy(
+                error = "Error cargando perfil de usuario",
+                isLoading = false
+            )
         }
     }
 
@@ -188,7 +204,7 @@ class ProfileViewModel(
                     phone = phone,
                     contactPerson = contactPerson,
                     location = location,
-                    preferences = listOf(cuisineType) // Convertir cuisineType a lista
+                    preferences = listOf(cuisineType)
                 )
 
                 authRepository.updateChefProfile(updatedChef)

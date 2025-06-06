@@ -30,8 +30,9 @@ class AuthRepository(
         return try {
             val response = apiService.login(LoginRequest(email, password))
 
-
             sharedPrefs.saveToken(response.token)
+            sharedPrefs.saveUser(response.user)
+
             when (response.user.role) {
                 "user" -> {
                     mapUserToClient()
@@ -58,7 +59,6 @@ class AuthRepository(
 
     private suspend fun mapUserToClient() {
         val client = apiService.getClientMe(token = "Bearer ${sharedPrefs.getToken()}" )
-
         sharedPrefs.saveClient(client)
     }
 
@@ -103,6 +103,7 @@ class AuthRepository(
         }
         sharedPrefs.logout()
     }
+
     suspend fun updateClientProfile(client: Client): Result<Client> {
         return try {
             if (AppConfig.USE_MOCKUP) {
@@ -148,6 +149,16 @@ class AuthRepository(
             val updatedClient = apiService.updateClientProfile("Bearer $token", updateRequest)
 
             sharedPrefs.saveClient(updatedClient)
+
+            val currentUser = sharedPrefs.getUser()
+            currentUser?.let { user ->
+                val updatedUser = user.copy(
+                    name = updatedClient.name,
+                    email = updatedClient.email
+                )
+                sharedPrefs.saveUser(updatedUser)
+            }
+
             if (AppConfig.ENABLE_LOGGING)
                 Log.d("AuthRepository", "User updated via API: ${updatedClient.name}")
             Result.success(updatedClient)
@@ -172,12 +183,22 @@ class AuthRepository(
                 phone = chef.phone,
                 location = chef.location,
                 photoUrl = chef.photoUrl,
-                cuisineType = chef.preferences[0] // tipo cocina
+                cuisineType = chef.preferences[0]
             )
 
             val updatedChef = apiService.updateChefProfile("Bearer $token", updateRequest)
 
             sharedPrefs.saveChef(updatedChef)
+
+            val currentUser = sharedPrefs.getUser()
+            currentUser?.let { user ->
+                val updatedUser = user.copy(
+                    name = updatedChef.name,
+                    email = updatedChef.email
+                )
+                sharedPrefs.saveUser(updatedUser)
+            }
+
             if (AppConfig.ENABLE_LOGGING)
                 Log.d("AuthRepository", "User updated via API: ${updatedChef.name}")
             Result.success(updatedChef)
