@@ -7,7 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gourmetgo.client.AppConfig
-import gourmetgo.client.data.models.Chef
 import gourmetgo.client.data.repository.AuthRepository
 import gourmetgo.client.utils.EditProfileUtils
 import gourmetgo.client.viewmodel.statesUi.ProfileUiState
@@ -62,13 +61,15 @@ class ProfileViewModel(
         }
     }
 
-    fun updateProfile(
+    // ✅ Función específica para actualizar perfil de CLIENTE
+    fun updateClientProfile(
         name: String,
         email: String,
         phone: String,
         identification: String,
         preferences: List<String>
     ) {
+        // Validaciones básicas
         if (name.isBlank() || email.isBlank()) {
             uiState = uiState.copy(error = "Nombre y correo son obligatorios")
             return
@@ -94,27 +95,48 @@ class ProfileViewModel(
             return
         }
 
+        val currentClient = uiState.client
+        if (currentClient == null) {
+            uiState = uiState.copy(error = "No se encontraron datos del cliente")
+            return
+        }
+
         uiState = uiState.copy(isLoading = true, error = null)
 
         viewModelScope.launch {
             try {
-                when {
-                    uiState.client != null -> {
-                        updateClientProfile(name, email, phone, identification, preferences)
-                    }
-                    uiState.chef != null -> {
-                        updateChefProfile(name, email, phone, identification, preferences)
-                    }
-                    else -> {
+                val updatedClient = currentClient.copy(
+                    name = name,
+                    email = email,
+                    phone = phone,
+                    identification = identification,
+                    preferences = preferences
+                )
+
+                authRepository.updateClientProfile(updatedClient)
+                    .onSuccess { client ->
                         uiState = uiState.copy(
                             isLoading = false,
-                            error = "No se encontraron datos del usuario"
+                            client = client,
+                            updateSuccess = true,
+                            error = null
                         )
+                        if (AppConfig.ENABLE_LOGGING) {
+                            Log.d("ProfileViewModel", "Client profile updated successfully: ${client.name}")
+                        }
                     }
-                }
+                    .onFailure { error ->
+                        uiState = uiState.copy(
+                            isLoading = false,
+                            error = error.message ?: "Error actualizando perfil de cliente"
+                        )
+                        if (AppConfig.ENABLE_LOGGING) {
+                            Log.e("ProfileViewModel", "Error updating client profile", error)
+                        }
+                    }
             } catch (e: Exception) {
                 if (AppConfig.ENABLE_LOGGING) {
-                    Log.e("ProfileViewModel", "Error updating profile", e)
+                    Log.e("ProfileViewModel", "Error in updateClientProfile", e)
                 }
                 uiState = uiState.copy(
                     isLoading = false,
@@ -124,85 +146,86 @@ class ProfileViewModel(
         }
     }
 
-    private suspend fun updateClientProfile(
+    // ✅ Función específica para actualizar perfil de CHEF/RESTAURANTE
+    fun updateChefProfile(
         name: String,
         email: String,
         phone: String,
-        identification: String,
-        preferences: List<String>
+        contactPerson: String,
+        location: String,
+        cuisineType: String
     ) {
-        val currentClient = uiState.client ?: return
+        // Validaciones básicas
+        if (name.isBlank() || email.isBlank()) {
+            uiState = uiState.copy(error = "Nombre y correo son obligatorios")
+            return
+        }
 
-        val updatedClient = currentClient.copy(
-            name = name,
-            email = email,
-            phone = phone,
-            identification = identification,
-            preferences = preferences
-        )
+        if (!EditProfileUtils.isValidName(name)) {
+            uiState = uiState.copy(error = "El nombre solo puede contener letras y espacios")
+            return
+        }
 
-        authRepository.updateClientProfile(updatedClient)
-            .onSuccess { client ->
+        if (!EditProfileUtils.isValidEmail(email)) {
+            uiState = uiState.copy(error = "Formato de correo electrónico inválido")
+            return
+        }
+
+        if (phone.isNotBlank() && !EditProfileUtils.isValidPhone(phone)) {
+            uiState = uiState.copy(error = "El teléfono debe tener 8 dígitos")
+            return
+        }
+
+        val currentChef = uiState.chef
+        if (currentChef == null) {
+            uiState = uiState.copy(error = "No se encontraron datos del chef")
+            return
+        }
+
+        uiState = uiState.copy(isLoading = true, error = null)
+
+        viewModelScope.launch {
+            try {
+                val updatedChef = currentChef.copy(
+                    name = name,
+                    email = email,
+                    phone = phone,
+                    contactPerson = contactPerson,
+                    location = location,
+                    preferences = listOf(cuisineType) // Convertir cuisineType a lista
+                )
+
+                authRepository.updateChefProfile(updatedChef)
+                    .onSuccess { chef ->
+                        uiState = uiState.copy(
+                            isLoading = false,
+                            chef = chef,
+                            updateSuccess = true,
+                            error = null
+                        )
+                        if (AppConfig.ENABLE_LOGGING) {
+                            Log.d("ProfileViewModel", "Chef profile updated successfully: ${chef.name}")
+                        }
+                    }
+                    .onFailure { error ->
+                        uiState = uiState.copy(
+                            isLoading = false,
+                            error = error.message ?: "Error actualizando perfil de chef"
+                        )
+                        if (AppConfig.ENABLE_LOGGING) {
+                            Log.e("ProfileViewModel", "Error updating chef profile", error)
+                        }
+                    }
+            } catch (e: Exception) {
+                if (AppConfig.ENABLE_LOGGING) {
+                    Log.e("ProfileViewModel", "Error in updateChefProfile", e)
+                }
                 uiState = uiState.copy(
                     isLoading = false,
-                    client = client,
-                    updateSuccess = true,
-                    error = null
+                    error = "Error actualizando perfil: ${e.message}"
                 )
-                if (AppConfig.ENABLE_LOGGING) {
-                    Log.d("ProfileViewModel", "Client profile updated successfully for: ${client.name}")
-                }
             }
-            .onFailure { error ->
-                uiState = uiState.copy(
-                    isLoading = false,
-                    error = error.message ?: "Error actualizando perfil de cliente"
-                )
-                if (AppConfig.ENABLE_LOGGING) {
-                    Log.e("ProfileViewModel", "Error updating client profile", error)
-                }
-            }
-    }
-
-    private suspend fun updateChefProfile(
-        name: String,
-        email: String,
-        phone: String,
-        identification: String,
-        preferences: List<String>
-    ) {
-        val currentChef = uiState.chef ?: return
-
-        val updatedChef = currentChef.copy(
-            name = name,
-            email = email,
-            phone = phone,
-
-            // Los chefs pueden no tener identification y preferences
-            // Ajusta según tu modelo Chef
-        )
-
-        authRepository.updateChefProfile(updatedChef)
-            .onSuccess { chef ->
-                uiState = uiState.copy(
-                    isLoading = false,
-                    chef = Chef(),
-                    updateSuccess = true,
-                    error = null
-                )
-                if (AppConfig.ENABLE_LOGGING) {
-                    Log.d("ProfileViewModel", "Chef profile updated successfully for: ${chef.name}")
-                }
-            }
-            .onFailure { error ->
-                uiState = uiState.copy(
-                    isLoading = false,
-                    error = error.message ?: "Error actualizando perfil de chef"
-                )
-                if (AppConfig.ENABLE_LOGGING) {
-                    Log.e("ProfileViewModel", "Error updating chef profile", error)
-                }
-            }
+        }
     }
 
     fun clearError() {
@@ -217,7 +240,10 @@ class ProfileViewModel(
         return Preferences.entries.map { it.toString() }
     }
 
-
+    // ✅ Funciones helper para obtener datos comunes
+    fun getCurrentUserName(): String {
+        return uiState.client?.name ?: uiState.chef?.name ?: ""
+    }
 
     fun getCurrentUserEmail(): String {
         return uiState.client?.email ?: uiState.chef?.email ?: ""
@@ -233,6 +259,19 @@ class ProfileViewModel(
 
     fun getCurrentUserPreferences(): List<String> {
         return uiState.client?.preferences ?: emptyList()
+    }
+
+    // ✅ Chef specific getters
+    fun getCurrentChefContactPerson(): String {
+        return uiState.chef?.contactPerson ?: ""
+    }
+
+    fun getCurrentChefLocation(): String {
+        return uiState.chef?.location ?: ""
+    }
+
+    fun getCurrentChefCuisineType(): String {
+        return uiState.chef?.preferences?.firstOrNull() ?: ""
     }
 
     fun isChef(): Boolean {

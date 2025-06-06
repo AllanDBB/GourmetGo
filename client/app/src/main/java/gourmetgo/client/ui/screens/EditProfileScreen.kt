@@ -40,15 +40,27 @@ fun EditProfileScreen(
     val focusManager = LocalFocusManager.current
     val uiState = viewModel.uiState
 
-    var name by remember { mutableStateOf(uiState.client?.name ?: "") }
-    var email by remember { mutableStateOf(uiState.client?.email ?: "") }
-    var phoneInput by remember { mutableStateOf(EditProfileUtils.cleanPhoneInput(uiState.client?.phone ?: "")) }
-    var dniInput by remember { mutableStateOf(EditProfileUtils.cleanDNIInput(uiState.client?.identification ?: "")) }
-    var selectedPreferences by remember { mutableStateOf(uiState.client?.preferences ?: emptyList()) }
+    // ✅ Detectar si es cliente o chef
+    val isChef = viewModel.isChef()
+    val isClient = viewModel.isClient()
 
-    var phoneDisplayValue by remember { mutableStateOf(EditProfileUtils.formatPhoneForDisplay(uiState.client?.phone ?: "")) }
-    var dniDisplayValue by remember { mutableStateOf(EditProfileUtils.formatDNIForDisplay(uiState.client?.identification ?: "")) }
+    // Estados comunes
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phoneInput by remember { mutableStateOf("") }
+    var phoneDisplayValue by remember { mutableStateOf("") }
 
+    // Estados específicos para cliente
+    var dniInput by remember { mutableStateOf("") }
+    var dniDisplayValue by remember { mutableStateOf("") }
+    var selectedPreferences by remember { mutableStateOf(emptyList<String>()) }
+
+    // Estados específicos para chef
+    var contactPerson by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
+    var cuisineType by remember { mutableStateOf("") }
+
+    // Estados de error
     var nameError by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf("") }
     var phoneError by remember { mutableStateOf("") }
@@ -57,19 +69,35 @@ fun EditProfileScreen(
     val availablePreferences = viewModel.getPreferences()
     val scrollState = rememberScrollState()
 
+    // ✅ Cargar datos iniciales basados en el tipo de usuario
     LaunchedEffect(Unit) {
         viewModel.loadCurrentUser()
     }
 
-    LaunchedEffect(uiState.client) {
-        uiState.client?.let { client ->
-            name = client.name
-            email = client.email
-            phoneInput = EditProfileUtils.cleanPhoneInput(client.phone)
-            dniInput = EditProfileUtils.cleanDNIInput(client.identification)
-            selectedPreferences = client.preferences
-            phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(client.phone)
-            dniDisplayValue = EditProfileUtils.formatDNIForDisplay(client.identification)
+    LaunchedEffect(uiState.client, uiState.chef) {
+        when {
+            isClient -> {
+                uiState.client?.let { client ->
+                    name = client.name
+                    email = client.email
+                    phoneInput = EditProfileUtils.cleanPhoneInput(client.phone)
+                    dniInput = EditProfileUtils.cleanDNIInput(client.identification)
+                    selectedPreferences = client.preferences
+                    phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(client.phone)
+                    dniDisplayValue = EditProfileUtils.formatDNIForDisplay(client.identification)
+                }
+            }
+            isChef -> {
+                uiState.chef?.let { chef ->
+                    name = chef.name
+                    email = chef.email
+                    phoneInput = EditProfileUtils.cleanPhoneInput(chef.phone)
+                    phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(chef.phone)
+                    contactPerson = chef.contactPerson
+                    location = chef.location
+                    cuisineType = chef.preferences.firstOrNull() ?: ""
+                }
+            }
         }
     }
 
@@ -77,7 +105,10 @@ fun EditProfileScreen(
         nameError = if (!EditProfileUtils.isValidName(name)) "El nombre solo puede contener letras y espacios" else ""
         emailError = if (!EditProfileUtils.isValidEmail(email)) "Formato de correo electrónico inválido" else ""
         phoneError = if (phoneInput.isNotEmpty() && !EditProfileUtils.isValidPhone(phoneInput)) "El teléfono debe tener 8 dígitos" else ""
-        dniError = if (dniInput.isNotEmpty() && !EditProfileUtils.isValidDNI(dniInput)) "La cédula debe tener 9 dígitos" else ""
+
+        if (isClient) {
+            dniError = if (dniInput.isNotEmpty() && !EditProfileUtils.isValidDNI(dniInput)) "La cédula debe tener 9 dígitos" else ""
+        }
 
         return nameError.isEmpty() && emailError.isEmpty() && phoneError.isEmpty() && dniError.isEmpty()
     }
@@ -113,7 +144,7 @@ fun EditProfileScreen(
                     )
                 }
                 Text(
-                    text = "Editar Perfil",
+                    text = if (isChef) "Editar Perfil Chef" else "Editar Perfil",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary,
@@ -132,6 +163,7 @@ fun EditProfileScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ✅ Avatar
             Box(
                 modifier = Modifier
                     .size(120.dp)
@@ -146,13 +178,13 @@ fun EditProfileScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        Icons.Default.Email,
-                        contentDescription = "Contact",
+                        if (isChef) Icons.Default.Restaurant else Icons.Default.Person,
+                        contentDescription = if (isChef) "Chef" else "Usuario",
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Contacto",
+                        text = if (isChef) "Chef" else "Usuario",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -162,17 +194,9 @@ fun EditProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Nombre Completo",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
+            // ✅ Campo Nombre (común para ambos)
+            ProfileTextField(
+                label = if (isChef) "Nombre del Restaurante" else "Nombre Completo",
                 value = name,
                 onValueChange = { newValue ->
                     val cleaned = EditProfileUtils.cleanNameInput(newValue)
@@ -181,89 +205,31 @@ fun EditProfileScreen(
                         nameError = ""
                     }
                 },
-                placeholder = { Text("Ingresa tu nombre completo", fontSize = 14.sp) },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onFocusChanged { focusState ->
-                        if (!focusState.isFocused && name.isNotEmpty()) {
-                            nameError = if (!EditProfileUtils.isValidName(name)) "El nombre solo puede contener letras y espacios" else ""
-                        }
-                    },
-                singleLine = true,
+                placeholder = if (isChef) "Nombre del restaurante" else "Tu nombre completo",
                 isError = nameError.isNotEmpty(),
-                supportingText = if (nameError.isNotEmpty()) {
-                    { Text(nameError, color = MaterialTheme.colorScheme.error) }
-                } else null,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
+                errorMessage = nameError,
+                keyboardType = KeyboardType.Text,
+                focusManager = focusManager
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Email",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
+            // ✅ Campo Email (común para ambos)
+            ProfileTextField(
+                label = "Email",
                 value = email,
                 onValueChange = { newValue ->
                     email = newValue.trim()
                     emailError = ""
                 },
-                placeholder = { Text("ejemplo@gmail.com", fontSize = 14.sp) },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onFocusChanged { focusState ->
-                        if (!focusState.isFocused && email.isNotEmpty()) {
-                            emailError = if (!EditProfileUtils.isValidEmail(email)) "Formato de correo electrónico inválido" else ""
-                        }
-                    },
-                singleLine = true,
+                placeholder = "ejemplo@gmail.com",
                 isError = emailError.isNotEmpty(),
-                supportingText = if (emailError.isNotEmpty()) {
-                    { Text(emailError, color = MaterialTheme.colorScheme.error) }
-                } else null,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
+                errorMessage = emailError,
+                keyboardType = KeyboardType.Email,
+                focusManager = focusManager
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Teléfono",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
+            // ✅ Campo Teléfono (común para ambos)
+            ProfileTextField(
+                label = "Teléfono",
                 value = phoneDisplayValue,
                 onValueChange = { newValue ->
                     val cleanInput = EditProfileUtils.cleanPhoneInput(newValue)
@@ -273,138 +239,147 @@ fun EditProfileScreen(
                         phoneError = ""
                     }
                 },
-                placeholder = { Text("+506 8888 8888", fontSize = 14.sp) },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Phone,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onFocusChanged { focusState ->
-                        if (!focusState.isFocused && phoneInput.isNotEmpty()) {
-                            phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(phoneInput)
-                            phoneError = if (!EditProfileUtils.isValidPhone(phoneInput)) "El teléfono debe tener 8 dígitos" else ""
+                placeholder = "+506 8888 8888",
+                isError = phoneError.isNotEmpty(),
+                errorMessage = phoneError,
+                keyboardType = KeyboardType.Phone,
+                focusManager = focusManager,
+                onFocusLost = {
+                    if (phoneInput.isNotEmpty()) {
+                        phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(phoneInput)
+                        phoneError = if (!EditProfileUtils.isValidPhone(phoneInput)) "El teléfono debe tener 8 dígitos" else ""
+                    }
+                }
+            )
+
+            // ✅ Campos específicos para CLIENTE
+            if (isClient) {
+                ProfileTextField(
+                    label = "Cédula",
+                    value = dniDisplayValue,
+                    onValueChange = { newValue ->
+                        val cleanInput = EditProfileUtils.cleanDNIInput(newValue)
+                        if (cleanInput.length <= 9) {
+                            dniInput = cleanInput
+                            dniDisplayValue = cleanInput
+                            dniError = if (cleanInput.isNotEmpty() && cleanInput.length != 9) "La cédula debe tener 9 dígitos" else ""
                         }
                     },
-                singleLine = true,
-                isError = phoneError.isNotEmpty(),
-                supportingText = if (phoneError.isNotEmpty()) {
-                    { Text(phoneError, color = MaterialTheme.colorScheme.error) }
-                } else null,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Cédula",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = dniDisplayValue,
-                onValueChange = { newValue ->
-                    val cleanInput = EditProfileUtils.cleanDNIInput(newValue)
-                    if (cleanInput.length <= 9) {
-                        dniInput = cleanInput
-                        dniDisplayValue = cleanInput
-                        dniError = if (cleanInput.isNotEmpty() && cleanInput.length != 9) "La cédula debe tener 9 dígitos" else ""
-                    }
-                },
-                placeholder = { Text("1-2345-6789", fontSize = 14.sp) },
-                keyboardOptions = KeyboardOptions(
+                    placeholder = "1-2345-6789",
+                    isError = dniError.isNotEmpty(),
+                    errorMessage = dniError,
                     keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() }
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onFocusChanged { focusState ->
-                        if (!focusState.isFocused && dniInput.isNotEmpty()) {
+                    focusManager = focusManager,
+                    onFocusLost = {
+                        if (dniInput.isNotEmpty()) {
                             dniDisplayValue = EditProfileUtils.formatDNIForDisplay(dniInput)
                             dniError = if (!EditProfileUtils.isValidDNI(dniInput)) "La cédula debe tener 9 dígitos" else ""
                         }
-                    },
-                singleLine = true,
-                isError = dniError.isNotEmpty(),
-                supportingText = if (dniError.isNotEmpty()) {
-                    { Text(dniError, color = MaterialTheme.colorScheme.error) }
-                } else null,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    }
                 )
-            )
 
-            Spacer(modifier = Modifier.height(24.dp))
+                // Preferencias gastronómicas
+                Text(
+                    text = "Preferencias Gastronómicas (opcional)",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
+                )
 
-            Text(
-                text = "Preferencias Gastronómicas (opcional)",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
-            )
+                Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                availablePreferences.chunked(3).forEach { row ->
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        row.forEach { preference ->
-                            FilterChip(
-                                onClick = {
-                                    selectedPreferences = if (selectedPreferences.contains(preference)) {
-                                        selectedPreferences - preference
-                                    } else {
-                                        selectedPreferences + preference
-                                    }
-                                },
-                                label = {
-                                    Text(
-                                        text = preference,
-                                        fontSize = 12.sp
-                                    )
-                                },
-                                selected = selectedPreferences.contains(preference),
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                // Grid de preferencias
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    availablePreferences.chunked(3).forEach { row ->
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            row.forEach { preference ->
+                                FilterChip(
+                                    onClick = {
+                                        selectedPreferences = if (selectedPreferences.contains(preference)) {
+                                            selectedPreferences - preference
+                                        } else {
+                                            selectedPreferences + preference
+                                        }
+                                    },
+                                    label = {
+                                        Text(
+                                            text = preference,
+                                            fontSize = 12.sp
+                                        )
+                                    },
+                                    selected = selectedPreferences.contains(preference),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
                 }
             }
 
+            // ✅ Campos específicos para CHEF
+            if (isChef) {
+                ProfileTextField(
+                    label = "Persona de Contacto",
+                    value = contactPerson,
+                    onValueChange = { contactPerson = it },
+                    placeholder = "Nombre del encargado",
+                    keyboardType = KeyboardType.Text,
+                    focusManager = focusManager
+                )
+
+                ProfileTextField(
+                    label = "Ubicación",
+                    value = location,
+                    onValueChange = { location = it },
+                    placeholder = "Dirección del restaurante",
+                    keyboardType = KeyboardType.Text,
+                    focusManager = focusManager
+                )
+
+                ProfileTextField(
+                    label = "Tipo de Cocina",
+                    value = cuisineType,
+                    onValueChange = { cuisineType = it },
+                    placeholder = "Ej: Italiana, Asiática, Fusión",
+                    keyboardType = KeyboardType.Text,
+                    focusManager = focusManager
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
+            // ✅ Botón Guardar
             Button(
                 onClick = {
                     if (validateFields()) {
-                        viewModel.updateProfile(
-                            name = name.trim(),
-                            email = email.trim(),
-                            phone = EditProfileUtils.phoneToApiFormat(phoneInput),
-                            identification = EditProfileUtils.dniToApiFormat(dniInput),
-                            preferences = selectedPreferences
-                        )
+                        when {
+                            isClient -> {
+                                viewModel.updateClientProfile(
+                                    name = name.trim(),
+                                    email = email.trim(),
+                                    phone = EditProfileUtils.phoneToApiFormat(phoneInput),
+                                    identification = EditProfileUtils.dniToApiFormat(dniInput),
+                                    preferences = selectedPreferences
+                                )
+                            }
+                            isChef -> {
+                                viewModel.updateChefProfile(
+                                    name = name.trim(),
+                                    email = email.trim(),
+                                    phone = EditProfileUtils.phoneToApiFormat(phoneInput),
+                                    contactPerson = contactPerson.trim(),
+                                    location = location.trim(),
+                                    cuisineType = cuisineType.trim()
+                                )
+                            }
+                        }
                     }
                 },
                 enabled = !uiState.isLoading && name.isNotBlank() && email.isNotBlank(),
@@ -413,7 +388,7 @@ fun EditProfileScreen(
                     .height(48.dp),
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF6B7280),
+                    containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White
                 )
             ) {
@@ -435,4 +410,60 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
+
+// ✅ Componente auxiliar para campos de texto
+@Composable
+fun ProfileTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    errorMessage: String = "",
+    keyboardType: KeyboardType = KeyboardType.Text,
+    focusManager: androidx.compose.ui.focus.FocusManager,
+    onFocusLost: () -> Unit = {}
+) {
+    Text(
+        text = label,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Start
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = { Text(placeholder, fontSize = 14.sp) },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType,
+            imeAction = ImeAction.Next
+        ),
+        keyboardActions = KeyboardActions(
+            onNext = { focusManager.moveFocus(FocusDirection.Down) }
+        ),
+        modifier = modifier
+            .fillMaxWidth()
+            .onFocusChanged { focusState ->
+                if (!focusState.isFocused && value.isNotEmpty()) {
+                    onFocusLost()
+                }
+            },
+        singleLine = true,
+        isError = isError,
+        supportingText = if (errorMessage.isNotEmpty()) {
+            { Text(errorMessage, color = MaterialTheme.colorScheme.error) }
+        } else null,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+        )
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
 }

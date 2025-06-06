@@ -5,6 +5,7 @@ import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.dtos.LoginRequest
 import gourmetgo.client.data.models.dtos.LoginResponse
 import gourmetgo.client.data.models.dtos.ExperiencesResponse
+import gourmetgo.client.data.models.dtos.UpdateChefRequest
 import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -31,4 +32,10 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: UpdateClientRequest
     ): Client
+
+    @PUT("chef/me")
+    suspend fun updateChefProfile(
+        @Header("Authorization") token: String,
+        @Body request: UpdateChefRequest
+    ): Chef
 }

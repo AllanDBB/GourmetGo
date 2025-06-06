@@ -2,15 +2,12 @@ package gourmetgo.client.data.models
 
 
 data class Chef(
+    val id: String = "",
     val name: String = "",
     val contactPerson: String = "",
     val email: String = "",
     val phone: String = "",
     val location: String = "",
-    val cuisineType: String = "",
-    val password: String = "",
+    val preferences: List<String> = emptyList(), // tipo cocina
     val photoUrl: String = "",
-    val bio : String = "",
-    val experience : String = "",
-    val socialLinks: List<String> = emptyList()
 )
