@@ -3,83 +3,89 @@ package gourmetgo.client.data.repository
 import android.util.Log
 import gourmetgo.client.AppConfig
 import gourmetgo.client.data.localStorage.SharedPrefsManager
-import gourmetgo.client.data.mockups.UserMockup
+import gourmetgo.client.data.models.Chef
+import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.User
 import gourmetgo.client.data.models.dtos.LoginRequest
+import gourmetgo.client.data.models.dtos.UpdateChefRequest
+import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.remote.ApiService
-import kotlinx.coroutines.delay
 
 class AuthRepository(
     private val apiService: ApiService,
     private val sharedPrefs: SharedPrefsManager
 ) {
 
-    suspend fun login(email: String, password: String): Result<User> {
-        return try {
-            if (AppConfig.USE_MOCKUP) {
-                loginWithMockup(email, password)
-            } else {
-                loginWithApi(email, password)
-            }
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Error in login", e)
-            Result.failure(Exception("Error : ${e.message}"))
+    suspend fun login(email: String, password: String):Result<User>{
+        return if (AppConfig.USE_MOCKUP) {
+            //loginWithMockup(email, password)
+            Result.success(User())
+        } else {
+            loginWithApi(email, password)
+
         }
     }
 
-    private suspend fun loginWithMockup(email: String, password: String): Result<User> {
-        return try {
-            if (AppConfig.ENABLE_LOGGING) {
-                Log.d("AuthRepository", "Attempting mockup login for: $email")
-            }
-            delay(AppConfig.MOCK_NETWORK_DELAY)
-
-            val user = UserMockup.validateCredentials(email, password)
-
-            if (user != null) {
-                val fakeToken = "mock_token_${System.currentTimeMillis()}"
-
-                sharedPrefs.saveToken(fakeToken)
-                sharedPrefs.saveUser(user)
-                Log.d("AuthRepository", "Usuario guardado en prefs: ${user.id} - ${user.name}")
-
-                Result.success(user)
-            } else {
-                Log.e("AuthRepository", "Bad credentials for mockup login: $email")
-                Result.failure(Exception("Bad credentials"))
-            }
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Error in mockup login", e)
-            Result.failure(Exception("Error : ${e.message}"))
-        }
-    }
-
-    private suspend fun loginWithApi(email: String, password: String): Result<User> {
+    private suspend fun loginWithApi(email: String, password: String):Result<User> {
         return try {
             val response = apiService.login(LoginRequest(email, password))
+
             sharedPrefs.saveToken(response.token)
             sharedPrefs.saveUser(response.user)
-            Result.success(response.user)
+
+            when (response.user.role) {
+                "user" -> {
+                    mapUserToClient()
+                    if (AppConfig.ENABLE_LOGGING)
+                        Log.d("AuthRepository", "API login successful for user: ${response.user.email}, role: ${response.user.role}")
+                    Result.success(response.user)
+                }
+                "chef" -> {
+                    mapUserToChef()
+                    if (AppConfig.ENABLE_LOGGING)
+                        Log.d("AuthRepository", "API login successful for user: ${response.user.email}, role: ${response.user.role}")
+                    Result.success(response.user)
+                }
+                else -> {
+                    Log.e("AuthRepository","Unknown user type: ${response.user.role}")
+                    Result.failure(Exception("Unknown user type: ${response.user.role}"))
+                }
+            }
         } catch (e: Exception) {
             Log.e("AuthRepository", "Error in API login", e)
             Result.failure(Exception("Error connection server"))
         }
     }
 
-    fun logout() {
-        try {
-            sharedPrefs.logout()
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Error in logout", e)
-        }
+    private suspend fun mapUserToClient() {
+        val client = apiService.getClientMe(token = "Bearer ${sharedPrefs.getToken()}" )
+        sharedPrefs.saveClient(client)
+    }
+
+    private suspend fun mapUserToChef() {
+        val chef = apiService.getChefMe(token = "Bearer ${sharedPrefs.getToken()}")
+        Log.d("User Chef","$chef")
+        sharedPrefs.saveChef(chef)
     }
 
     fun isLoggedIn(): Boolean {
+        return sharedPrefs.isLoggedIn()
+    }
+
+    fun getCurrentClient(): Client? {
         return try {
-            sharedPrefs.isLoggedIn()
+            sharedPrefs.getClient()
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Error checking login status", e)
-            false
+            Log.e("AuthRepository", "Error getting current client", e)
+            null
+        }
+    }
+    fun getCurrentChef(): Chef? {
+        return try {
+            sharedPrefs.getChef()
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error getting current chef", e)
+            null
         }
     }
 
@@ -92,12 +98,115 @@ class AuthRepository(
         }
     }
 
-    fun getToken(): String? {
+    fun logout() {
+        if (AppConfig.ENABLE_LOGGING) {
+            Log.d("AuthRepository", "Logging out user")
+        }
+        sharedPrefs.logout()
+    }
+
+    suspend fun updateClientProfile(client: Client): Result<Client> {
         return try {
-            sharedPrefs.getToken()
+            if (AppConfig.USE_MOCKUP) {
+                Result.success(Client())
+            } else {
+                updateClientWithApi(client)
+            }
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Error getting token", e)
-            null
+            Log.e("AuthRepository", "Error updating user profile", e)
+            Result.failure(Exception("Error updating user profile: ${e.message}"))
         }
     }
+
+    suspend fun updateChefProfile(chef: Chef): Result<Chef> {
+        return try {
+            if (AppConfig.USE_MOCKUP) {
+                Result.success(Chef())
+            } else {
+                updateChefWithApi(chef)
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error updating user profile", e)
+            Result.failure(Exception("Error updating user profile: ${e.message}"))
+        }
+    }
+
+    private suspend fun updateClientWithApi(client: Client): Result<Client> {
+        return try {
+            val token = sharedPrefs.getToken()
+            if (token == null) {
+                Log.e("AuthRepository", "No token found for API update")
+                return Result.failure(Exception("No token found for API update"))
+            }
+
+            val updateRequest = UpdateClientRequest(
+                email = client.email,
+                phone = client.phone,
+                identification = client.identification,
+                avatar = client.avatar,
+                preferences = client.preferences
+            )
+
+            val updatedClient = apiService.updateClientProfile("Bearer $token", updateRequest).user
+
+            sharedPrefs.saveClient(updatedClient)
+
+            val currentUser = sharedPrefs.getUser()
+            currentUser?.let { user ->
+                val updatedUser = user.copy(
+                    name = updatedClient.name,
+                    email = updatedClient.email
+                )
+                sharedPrefs.saveUser(updatedUser)
+            }
+
+            if (AppConfig.ENABLE_LOGGING)
+                Log.d("AuthRepository", "User updated via API: ${sharedPrefs.getUser()?.name}")
+            Result.success(updatedClient)
+
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error in API updateUser", e)
+            Result.failure(Exception("Error in API updateUser"))
+        }
+    }
+
+    private suspend fun updateChefWithApi(chef: Chef): Result<Chef> {
+        return try {
+            val token = sharedPrefs.getToken()
+            if (token == null) {
+                Log.e("AuthRepository", "No token found for API update")
+                return Result.failure(Exception("No token found for API update"))
+            }
+
+            val updateRequest = UpdateChefRequest(
+                contactPerson = chef.contactPerson,
+                email = chef.email,
+                phone = chef.phone,
+                location = chef.location,
+                avatar = chef.avatar,
+                cuisineType = chef.preferences[0]
+            )
+            val updatedChef = apiService.updateChefProfile("Bearer ${sharedPrefs.getToken()}", updateRequest).chef
+            //TODO:API return something that does not match with chef model
+            sharedPrefs.saveChef(chef)
+
+            val currentUser = sharedPrefs.getUser()
+            currentUser?.let { user ->
+                val updatedUser = user.copy(
+                    name = chef.name,
+                    email = chef.email
+                )
+                sharedPrefs.saveUser(updatedUser)
+            }
+
+            if (AppConfig.ENABLE_LOGGING)
+                Log.d("AuthRepository", "User updated via API: ${ sharedPrefs.getUser()?.name}")
+            Result.success(updatedChef)
+
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error in API updateUser", e)
+            Result.failure(Exception("Error in API updateUser"))
+        }
+    }
+
 }

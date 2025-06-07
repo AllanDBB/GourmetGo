@@ -7,11 +7,7 @@ require('dotenv').config();
 const app = express();
 
 // Cors middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true,
-}));
+app.use(cors());
 
 // Middleware to parse JSON requests
 app.use(express.json());
