@@ -13,15 +13,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.TimeUnit
 
-/**
- * CloudinaryService - Servicio para subir imágenes a Cloudinary
- */
 class CloudinaryService(private val context: Context) {
     
     companion object {
-        // Credenciales públicas de Cloudinary (funcionan para testing)
         private const val CLOUD_NAME = "dsr48ffu2"
-        private const val UPLOAD_PRESET = "gourmetgo_users"  
+        private const val UPLOAD_PRESET = "gourmetgo_users"
         private const val CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/$CLOUD_NAME/image/upload"
     }
     
@@ -29,54 +25,30 @@ class CloudinaryService(private val context: Context) {
         .connectTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
-        .addInterceptor { chain ->
-            val request = chain.request()
-            Log.d("CloudinaryService", "🌐 URL: ${request.url}")
-            Log.d("CloudinaryService", "📝 Method: ${request.method}")
-            val response = chain.proceed(request)
-            Log.d("CloudinaryService", "📥 Response: ${response.code}")
-            response
-        }
         .build()
 
-    /**
-     * Sube imagen de perfil de usuario
-     * Alias para uploadImage() con logs específicos
-     */
     suspend fun uploadUserProfileImage(imageUri: Uri): Result<String> {
-        Log.d("CloudinaryService", "👤 Uploading USER profile image...")
+        Log.d("CloudinaryService", "Uploading user profile image")
         return uploadImage(imageUri)
     }
 
-    /**
-     * Sube imagen de perfil de chef
-     * Alias para uploadImage() con logs específicos
-     */
     suspend fun uploadChefProfileImage(imageUri: Uri): Result<String> {
-        Log.d("CloudinaryService", "🧑‍🍳 Uploading CHEF profile image...")
+        Log.d("CloudinaryService", "Uploading chef profile image")
         return uploadImage(imageUri)
     }
 
-    /**
-     * Sube imagen a Cloudinary y devuelve la URL
-     * Función principal que maneja todas las subidas
-     */
     suspend fun uploadImage(imageUri: Uri): Result<String> = withContext(Dispatchers.IO) {
         var tempFile: File? = null
         
-        return@withContext try {
-            Log.d("CloudinaryService", "🚀 Starting upload to Cloudinary...")
+        try {
+            Log.d("CloudinaryService", "Starting image upload")
             
-            // 1. Convertir URI a File temporal
-            tempFile = uriToTempFile(imageUri)
-            Log.d("CloudinaryService", "📂 Temp file: ${tempFile.absolutePath}")
-            Log.d("CloudinaryService", "📏 File size: ${tempFile.length()} bytes")
+            tempFile = createTempFileFromUri(imageUri)
             
             if (tempFile.length() == 0L) {
-                return@withContext Result.failure(Exception("El archivo está vacío"))
+                return@withContext Result.failure(Exception("File is empty"))
             }
             
-            // 2. Crear request multipart con preset válido
             val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart(
@@ -90,75 +62,46 @@ class CloudinaryService(private val context: Context) {
             val request = Request.Builder()
                 .url(CLOUDINARY_URL)
                 .post(requestBody)
-                .addHeader("User-Agent", "GourmetGo-Android/1.0")
                 .build()
 
-            Log.d("CloudinaryService", "📤 Sending request...")
-            Log.d("CloudinaryService", "🔗 URL: $CLOUDINARY_URL")
-            Log.d("CloudinaryService", "🎛️ Preset: $UPLOAD_PRESET")
-
-            // 3. Ejecutar request
             val response = client.newCall(request).execute()
             
             response.use { resp ->
                 val responseBody = resp.body?.string()
                 
-                Log.d("CloudinaryService", "📥 Response code: ${resp.code}")
-                Log.d("CloudinaryService", "📄 Response body: ${responseBody?.take(500)}...")
-                
                 if (resp.isSuccessful) {
-                    val imageUrl = parseCloudinaryResponse(responseBody)
+                    val imageUrl = extractImageUrl(responseBody)
                     
                     if (imageUrl.isNotEmpty()) {
-                        Log.d("CloudinaryService", "✅ Upload successful!")
-                        Log.d("CloudinaryService", "🔗 Image URL: $imageUrl")
+                        Log.d("CloudinaryService", "Upload successful: $imageUrl")
                         Result.success(imageUrl)
                     } else {
-                        Log.e("CloudinaryService", "❌ No se pudo extraer URL de la respuesta")
-                        Log.e("CloudinaryService", "📄 Full response: $responseBody")
-                        Result.failure(Exception("Error al procesar respuesta del servidor"))
+                        Log.e("CloudinaryService", "Could not extract URL from response")
+                        Result.failure(Exception("Failed to process server response"))
                     }
                 } else {
-                    // Manejo específico de errores HTTP
-                    val errorMessage = when (resp.code) {
-                        400 -> {
-                            Log.e("CloudinaryService", "❌ Bad Request (400)")
-                            Log.e("CloudinaryService", "📄 Error details: $responseBody")
-                            
-                            val cloudinaryError = parseCloudinaryError(responseBody)
-                            "Error 400: $cloudinaryError"
-                        }
-                        401 -> "Error de autenticación (401)"
-                        403 -> "Acceso denegado (403)"
-                        413 -> "Archivo muy grande (413)"
-                        else -> "Error HTTP ${resp.code}"
-                    }
-                    
+                    val errorMessage = handleHttpError(resp.code, responseBody)
+                    Log.e("CloudinaryService", "Upload failed: $errorMessage")
                     Result.failure(Exception(errorMessage))
                 }
             }
         } catch (e: Exception) {
-            Log.e("CloudinaryService", "❌ Unexpected error", e)
-            Result.failure(Exception("Error al subir imagen: ${e.message}"))
+            Log.e("CloudinaryService", "Upload error", e)
+            Result.failure(Exception("Upload failed: ${e.message}"))
         } finally {
-            // 4. Limpiar archivo temporal
             tempFile?.let {
                 if (it.exists()) {
                     it.delete()
-                    Log.d("CloudinaryService", "🗑️ Temp file deleted")
                 }
             }
         }
     }
 
-    /**
-     * Convierte URI a archivo temporal
-     */
-    private fun uriToTempFile(uri: Uri): File {
+    private fun createTempFileFromUri(uri: Uri): File {
         val inputStream = context.contentResolver.openInputStream(uri)
-            ?: throw Exception("No se puede abrir la imagen")
+            ?: throw Exception("Cannot open image")
         
-        val tempFile = File(context.cacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
+        val tempFile = File(context.cacheDir, "temp_${System.currentTimeMillis()}.jpg")
         
         inputStream.use { input ->
             FileOutputStream(tempFile).use { output ->
@@ -169,27 +112,34 @@ class CloudinaryService(private val context: Context) {
         return tempFile
     }
 
-    /**
-     * Extrae URL de la respuesta JSON de Cloudinary
-     */
-    private fun parseCloudinaryResponse(responseBody: String?): String {
+    private fun extractImageUrl(responseBody: String?): String {
         return try {
             if (responseBody.isNullOrEmpty()) return ""
             
             val jsonObject = JSONObject(responseBody)
             jsonObject.getString("secure_url")
         } catch (e: Exception) {
-            Log.e("CloudinaryService", "❌ Error parsing JSON response", e)
+            Log.e("CloudinaryService", "Error parsing response", e)
             ""
         }
     }
 
-    /**
-     * Extrae mensaje de error específico de Cloudinary
-     */
-    private fun parseCloudinaryError(responseBody: String?): String {
+    private fun handleHttpError(code: Int, responseBody: String?): String {
+        return when (code) {
+            400 -> {
+                val errorDetail = parseErrorMessage(responseBody)
+                "Bad request: $errorDetail"
+            }
+            401 -> "Authentication failed"
+            403 -> "Access denied"
+            413 -> "File too large"
+            else -> "HTTP error $code"
+        }
+    }
+
+    private fun parseErrorMessage(responseBody: String?): String {
         return try {
-            if (responseBody.isNullOrEmpty()) return "Error desconocido"
+            if (responseBody.isNullOrEmpty()) return "Unknown error"
             
             val jsonObject = JSONObject(responseBody)
             
@@ -201,11 +151,10 @@ class CloudinaryService(private val context: Context) {
                 jsonObject.has("message") -> {
                     jsonObject.getString("message")
                 }
-                else -> "Error en la configuración de Cloudinary"
+                else -> "Configuration error"
             }
         } catch (e: Exception) {
-            Log.e("CloudinaryService", "❌ Error parsing error response", e)
-            "Error al procesar respuesta de error"
+            "Error parsing response"
         }
     }
 }
