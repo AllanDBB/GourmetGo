@@ -14,6 +14,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PUT
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface ApiService {
 
@@ -40,4 +41,6 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: UpdateChefRequest
     ): UpdateChefResponse
+    @GET("chefs/{id}/experiences")
+    suspend fun getChefExperiences(@Path("id") id: String): ExperiencesResponse
 }
