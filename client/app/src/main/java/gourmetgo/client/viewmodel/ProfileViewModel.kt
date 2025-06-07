@@ -1,5 +1,6 @@
 package gourmetgo.client.viewmodel
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,9 +13,11 @@ import gourmetgo.client.utils.EditProfileUtils
 import gourmetgo.client.viewmodel.statesUi.ProfileUiState
 import kotlinx.coroutines.launch
 import gourmetgo.client.enums.Preferences
+import gourmetgo.client.utils.ImageUploadUtils
 
 class ProfileViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val imageUploadUseCase: ImageUploadUtils
 ) : ViewModel() {
 
     var uiState by mutableStateOf(ProfileUiState())
@@ -74,6 +77,58 @@ class ProfileViewModel(
                 error = "Error cargando perfil de usuario",
                 isLoading = false
             )
+        }
+    }
+
+    fun uploadProfileImage(imageUri: Uri) {
+        uiState = uiState.copy(isLoading = true, error = null)
+
+        viewModelScope.launch {
+            try {
+                val uploadResult = if (isChef()) {
+                    imageUploadUseCase.uploadChefImage(imageUri)
+                } else {
+                    imageUploadUseCase.uploadUserImage(imageUri)
+                }
+
+                uploadResult
+                    .onSuccess { imageUrl ->
+                        if (isClient()) {
+                            val currentClient = uiState.client?.copy(avatar = imageUrl)
+                            uiState = uiState.copy(
+                                client = currentClient,
+                                isLoading = false
+                            )
+                        } else if (isChef()) {
+                            val currentChef = uiState.chef?.copy(photoUrl = imageUrl)
+                            uiState = uiState.copy(
+                                chef = currentChef,
+                                isLoading = false
+                            )
+                        }
+
+                        if (AppConfig.ENABLE_LOGGING) {
+                            Log.d("ProfileViewModel", "Image uploaded successfully: $imageUrl")
+                        }
+                    }
+                    .onFailure { error ->
+                        uiState = uiState.copy(
+                            isLoading = false,
+                            error = error.message ?: "Error subiendo imagen"
+                        )
+                        if (AppConfig.ENABLE_LOGGING) {
+                            Log.e("ProfileViewModel", "Error uploading image", error)
+                        }
+                    }
+            } catch (e: Exception) {
+                if (AppConfig.ENABLE_LOGGING) {
+                    Log.e("ProfileViewModel", "Error in uploadProfileImage", e)
+                }
+                uiState = uiState.copy(
+                    isLoading = false,
+                    error = "Error subiendo imagen: ${e.message}"
+                )
+            }
         }
     }
 
@@ -198,14 +253,12 @@ class ProfileViewModel(
 
         viewModelScope.launch {
             try {
-                //TODO: CONFIG CLOUNDRY
                 val updatedChef = currentChef.copy(
                     name = name,
                     email = email,
                     phone = phone,
                     contactPerson = contactPerson,
                     location = location,
-                    photoUrl = "https://res.cloudinary.com/",
                     preferences = listOf(cuisineType)
                 )
 
@@ -224,7 +277,7 @@ class ProfileViewModel(
                     .onFailure { error ->
                         uiState = uiState.copy(
                             isLoading = false,
-                            error =  "Error actualizando perfil de chef"
+                            error = "Error actualizando perfil de chef"
                         )
                         if (AppConfig.ENABLE_LOGGING) {
                             Log.e("ProfileViewModel", "Error updating chef profile", error)
@@ -260,5 +313,13 @@ class ProfileViewModel(
 
     fun isClient(): Boolean {
         return uiState.client != null
+    }
+
+    fun getCurrentImageUrl(): String? {
+        return when {
+            isClient() -> uiState.client?.avatar
+            isChef() -> uiState.chef?.photoUrl
+            else -> null
+        }
     }
 }

@@ -1,22 +1,18 @@
+
 package gourmetgo.client.ui.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -31,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import gourmetgo.client.utils.EditProfileUtils
 import gourmetgo.client.ui.components.ProfileTextField
 import gourmetgo.client.ui.components.FilterChip
+import gourmetgo.client.ui.components.ProfileImage
 import gourmetgo.client.viewmodel.ProfileViewModel
 
 @Composable
@@ -183,33 +180,16 @@ fun EditProfileScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable {
-                        Toast.makeText(context, "Cambiar foto próximamente", Toast.LENGTH_SHORT).show()
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        if (isChef) Icons.Default.Restaurant else Icons.Default.Person,
-                        contentDescription = if (isChef) "Chef" else "Usuario",
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = if (isChef) "Chef" else "Usuario",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
+            ProfileImage(
+                imageUrl = viewModel.getCurrentImageUrl(),
+                isChef = isChef,
+                onImageCaptured = { uri ->
+                    viewModel.uploadProfileImage(uri)
+                },
+                onImageUploadError = { error ->
+                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
                 }
-            }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import gourmetgo.client.data.localStorage.SharedPrefsManager
 import gourmetgo.client.data.remote.Connection
 import gourmetgo.client.data.repository.AuthRepository
+import gourmetgo.client.utils.ImageUploadUtils
 import gourmetgo.client.viewmodel.ProfileViewModel
 
 class ProfileViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
@@ -19,8 +20,9 @@ class ProfileViewModelFactory(private val context: Context) : ViewModelProvider.
                 apiService = connection.apiService,
                 sharedPrefs = sharedPrefs
             )
+            val imageUploadUseCase = ImageUploadUtils(context)
 
-            return ProfileViewModel(repository) as T
+            return ProfileViewModel(repository, imageUploadUseCase) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
