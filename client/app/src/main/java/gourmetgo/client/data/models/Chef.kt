@@ -2,7 +2,7 @@ package gourmetgo.client.data.models
 
 
 data class Chef(
-    val id: String = "",
+    val _id: String = "",
     val name: String = "",
     val contactPerson: String = "",
     val email: String = "",
