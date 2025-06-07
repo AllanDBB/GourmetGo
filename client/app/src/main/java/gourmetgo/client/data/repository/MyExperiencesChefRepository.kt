@@ -16,7 +16,7 @@ class MyExperiencesChefRepository(
 ) {
     suspend fun getAllMyExperiences(): Result<List<Experience>> {
     
-        val id =sprefsManager.getUser()?.id ?: run {
+        val id =sprefsManager.getChef()?._id ?: run {
             Log.e("MyExperiencesChefRepository", "User ID is null in SharedPrefs")
             return Result.failure(Exception("Usuario no encontrado en SharedPrefs"))
         }
