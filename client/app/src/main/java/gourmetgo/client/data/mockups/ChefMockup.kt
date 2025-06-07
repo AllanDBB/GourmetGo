@@ -99,7 +99,7 @@ object ChefMockup {
         return chef 
     }
 
-    val availableCuisineTypes = listOf(
+    /*val availableCuisineTypes = listOf(
         "Cocina Italiana",
         "Cocina Japonesa",
         "Cocina Francesa",
@@ -108,5 +108,5 @@ object ChefMockup {
         "Mariscos y Pescados",
         "Carnes y Parrilla",
         "Cocina Fusión",
-    )
+    )*/
 }

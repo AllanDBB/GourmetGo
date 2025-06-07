@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import gourmetgo.client.utils.Preferences
 
 @Composable
 fun GastronomicPreferencesSection(
@@ -16,7 +17,8 @@ fun GastronomicPreferencesSection(
     error: String? = null,
     modifier: Modifier = Modifier
 ) {
-    val preferences = listOf("Italiano", "Hindú", "Asiático", "Americano", "Otros")
+    // Obtener todas las preferencias del enum
+    val availablePreferences = Preferences.values()
     
     Column(modifier = modifier) {
         Text(
@@ -30,15 +32,17 @@ fun GastronomicPreferencesSection(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(preferences) { preference ->
+            items(availablePreferences) { preference ->
+                val preferenceText = preference.toString()
+                
                 PreferenceChip(
-                    text = preference,
-                    isSelected = selectedPreferences.contains(preference),
+                    text = preferenceText,
+                    isSelected = selectedPreferences.contains(preferenceText),
                     onClick = {
-                        val newPreferences = if (selectedPreferences.contains(preference)) {
-                            selectedPreferences - preference
+                        val newPreferences = if (selectedPreferences.contains(preferenceText)) {
+                            selectedPreferences - preferenceText
                         } else {
-                            selectedPreferences + preference
+                            selectedPreferences + preferenceText
                         }
                         onPreferencesChange(newPreferences)
                     }

@@ -10,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import gourmetgo.client.data.mockups.ChefMockup
+import gourmetgo.client.utils.Preferences  
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,16 +70,16 @@ fun CuisineTypeSection(
                 expanded = isExpanded,
                 onDismissRequest = { isExpanded = false }
             ) {
-                ChefMockup.availableCuisineTypes.forEach { cuisineType ->
+                Preferences.values().forEach { cuisineType ->
                     DropdownMenuItem(
                         text = { 
                             Text(
-                                text = cuisineType,
+                                text = cuisineType.toString(),  
                                 fontSize = 14.sp
                             ) 
                         },
                         onClick = {
-                            onCuisineTypeChange(cuisineType)
+                            onCuisineTypeChange(cuisineType.toString())  
                             isExpanded = false
                         },
                         modifier = Modifier.fillMaxWidth()

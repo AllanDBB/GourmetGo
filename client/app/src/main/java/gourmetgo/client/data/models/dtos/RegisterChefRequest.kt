@@ -6,10 +6,10 @@ data class RegisterChefRequest(
     val email: String,
     val phone: String,
     val location: String,
-    val cuisinetype: String,
+    val cuisineType: String,
     val password: String,
     val photoUrl: String,
     val bio: String,
     val experience: String,
-    val sociallinks: List<String>
+    val socialLinks: List<String>
 )

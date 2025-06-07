@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import gourmetgo.client.data.localStorage.SharedPrefsManager
 import gourmetgo.client.data.remote.Connection
+import gourmetgo.client.data.remote.CloudinaryService  
 import gourmetgo.client.data.repository.RegisterChefRepository
 import gourmetgo.client.viewmodel.RegisterChefViewModel
 
@@ -15,9 +16,12 @@ class RegisterChefViewModelFactory(private val context: Context) : ViewModelProv
 
             val connection = Connection()
             val sharedPrefs = SharedPrefsManager(context)
+            val cloudinaryService = CloudinaryService(context)
+
             val repository = RegisterChefRepository(
                 apiService = connection.apiService,
-                sharedPrefs = sharedPrefs
+                sharedPrefs = sharedPrefs,
+                cloudinaryService = cloudinaryService
             )
 
             return RegisterChefViewModel(repository) as T

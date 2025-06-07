@@ -169,12 +169,12 @@ class RegisterChefViewModel(
                     email = uiState.email,
                     phone = uiState.phone,
                     location = uiState.location,
-                    cuisinetype = uiState.cuisinetype,
+                    cuisineType = uiState.cuisinetype,
                     password = uiState.password,
                     bio = uiState.bio,
                     experience = uiState.experience,
-                    sociallinks = uiState.sociallinks,
-                    photoUrl = uiState.selectedImageUri?.toString()
+                    socialLinks = uiState.sociallinks,
+                    photoUri = uiState.selectedImageUri 
                 )
                     .onSuccess {
                         uiState = uiState.copy(

@@ -3,13 +3,10 @@ package gourmetgo.client.viewmodel.statesUi
 import android.net.Uri
 
 data class RegisterChefUiState(
-    // Estados principales
     val isLoading: Boolean = false,
     val isRegistered: Boolean = false,
     val error: String? = null,
     val isFormValid: Boolean = false,
-    
-    // Campos del formulario
     val name: String = "",                    // Nombre del restaurante/chef
     val contactPerson: String = "",           // Persona de contacto
     val email: String = "",                   // Email
@@ -21,11 +18,7 @@ data class RegisterChefUiState(
     val experience: String = "",              // Años de experiencia
     val sociallinks: List<String> = emptyList(), // Enlaces sociales
     val selectedImageUri: Uri? = null,        // Foto de perfil
-    
-    // Estados de UI
     val showPassword: Boolean = false,
-    
-    // Errores de validación
     val nameError: String? = null,
     val contactPersonError: String? = null, 
     val emailError: String? = null,

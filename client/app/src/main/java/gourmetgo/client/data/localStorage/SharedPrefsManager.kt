@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import gourmetgo.client.data.models.Client
+import gourmetgo.client.data.models.User
 import gourmetgo.client.data.models.Chef
 
 class SharedPrefsManager(context: Context) {
@@ -16,23 +17,24 @@ class SharedPrefsManager(context: Context) {
         prefs.edit().putString("auth_token", token).apply()
     }
 
-     fun getToken(): String? {
+    fun getToken(): String? {
         return prefs.getString("auth_token", null)
     }
 
     // USER
-    fun saveUser(client: Client) {
-        val userJson = gson.toJson(client)
+    fun saveUser(user: User) {
+        val userJson = gson.toJson(user)
         prefs.edit().putString("user_data", userJson).apply()
     }
 
-    fun getUser(): Client? {
+    fun getUser(): User? {
         val userJson = prefs.getString("user_data", null)
         return if (userJson != null) {
-            gson.fromJson(userJson, Client::class.java)
+            gson.fromJson(userJson, User::class.java)
         } else null
     }
 
+    //Chef
     fun saveChef(chef: Chef) {
         val chefJson = gson.toJson(chef)
         prefs.edit().putString("chef_data", chefJson).apply()
@@ -45,19 +47,31 @@ class SharedPrefsManager(context: Context) {
         } else null
     }
 
+    //Client
+    fun saveClient(client: Client) {
+        val chefJson = gson.toJson(client)
+        prefs.edit().putString("client_data", chefJson).apply()
+    }
 
+    fun getClient(): Client? {
+        val clientJson = prefs.getString("client_data", null)
+        return if (clientJson != null) {
+            gson.fromJson(clientJson, Client::class.java)
+        } else null
+    }
+
+    //Additional
     fun isLoggedIn(): Boolean {
         return getToken() != null
     }
 
-    fun logout() {
-        prefs.edit()
-            .remove("auth_token")
-            .remove("user_data")
-            .apply()
-    }
-
-    fun clearAll() {
+    private fun clearAll() {
         prefs.edit().clear().apply()
     }
+
+    fun logout() {
+        clearAll()
+    }
+
+
 }

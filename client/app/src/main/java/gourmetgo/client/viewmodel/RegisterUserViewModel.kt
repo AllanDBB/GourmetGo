@@ -124,46 +124,48 @@ class RegisterUserViewModel(
         return isValid
     }
 
-    fun register() {
-        if (!validateForm()) return
+// En RegisterUserViewModel.kt - función register()
 
-        uiState = uiState.copy(isLoading = true, error = null)
+fun register() {
+    if (!validateForm()) return
 
-        viewModelScope.launch {
-            try {
-                repository.registerUser(
-                    name = uiState.name,
-                    email = uiState.email,
-                    phone = uiState.phone,
-                    identification = uiState.identification,
-                    password = uiState.password,
-                    preferences = uiState.selectedPreferences.toList(),
-                    photoUrl = uiState.selectedImageUri?.toString()
-                )
-                    .onSuccess {
-                        uiState = uiState.copy(
-                            isLoading = false,
-                            isRegistered = true,
-                            error = null
-                        )
-                        Log.d("RegisterUserViewModel", "Usuario registrado con éxito")
-                    }
-                    .onFailure { error ->
-                        uiState = uiState.copy(
-                            isLoading = false,
-                            error = error.message ?: "Error desconocido"
-                        )
-                        Log.e("RegisterUserViewModel", "Error al registrar", error)
-                    }
-            } catch (e: Exception) {
-                uiState = uiState.copy(
-                    isLoading = false,
-                    error = "Error inesperado: ${e.message}"
-                )
-                Log.e("RegisterUserViewModel", "Excepción inesperada", e)
-            }
+    uiState = uiState.copy(isLoading = true, error = null)
+
+    viewModelScope.launch {
+        try {
+            repository.registerUser(
+                name = uiState.name,
+                email = uiState.email,
+                phone = uiState.phone,
+                identification = uiState.identification,
+                password = uiState.password,
+                preferences = uiState.selectedPreferences.toList(),
+                photoUri = uiState.selectedImageUri 
+            )
+                .onSuccess {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        isRegistered = true,
+                        error = null
+                    )
+                    Log.d("RegisterUserViewModel", "Usuario registrado con éxito")
+                }
+                .onFailure { error ->
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        error = error.message ?: "Error desconocido"
+                    )
+                    Log.e("RegisterUserViewModel", "Error al registrar", error)
+                }
+        } catch (e: Exception) {
+            uiState = uiState.copy(
+                isLoading = false,
+                error = "Error inesperado: ${e.message}"
+            )
+            Log.e("RegisterUserViewModel", "Excepción inesperada", e)
         }
     }
+}
 
     fun updateName(name: String) {
         uiState = uiState.copy(name = name, nameError = null)
