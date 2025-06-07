@@ -32,14 +32,14 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
                 repository.login(email, password)
-                    .onSuccess { user ->
+                    .onSuccess {
                         uiState = uiState.copy(
                             isLoading = false,
                             isLoggedIn = true,
-                            user = user,
+                            user = repository.getCurrentUser(),
                             error = null
                         )
-                        Log.d("AuthViewModel", "Login successful for user: ${user.name}")
+                        Log.d("AuthViewModel", "Login successful for user: ${uiState.user?.name}")
                     }
                     .onFailure { error ->
                         uiState = uiState.copy(
@@ -72,7 +72,7 @@ class AuthViewModel(
     fun checkLoginStatus() {
         try {
             if (repository.isLoggedIn()) {
-                val user = repository.getCurrentUser()
+                val user =  repository.getCurrentUser()
                 uiState = uiState.copy(
                     isLoggedIn = true,
                     user = user
