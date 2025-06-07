@@ -4,6 +4,6 @@ data class UpdateClientRequest(
     val email: String?,
     val phone: String?,
     val identification: String?,
-    val photoUrl: String?,
+    val avatar: String?,
     val preferences: List<String>?
 )

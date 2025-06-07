@@ -100,7 +100,7 @@ class ProfileViewModel(
                                 isLoading = false
                             )
                         } else if (isChef()) {
-                            val currentChef = uiState.chef?.copy(photoUrl = imageUrl)
+                            val currentChef = uiState.chef?.copy(avatar = imageUrl)
                             uiState = uiState.copy(
                                 chef = currentChef,
                                 isLoading = false
@@ -318,7 +318,7 @@ class ProfileViewModel(
     fun getCurrentImageUrl(): String? {
         return when {
             isClient() -> uiState.client?.avatar
-            isChef() -> uiState.chef?.photoUrl
+            isChef() -> uiState.chef?.avatar
             else -> null
         }
     }

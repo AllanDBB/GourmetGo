@@ -6,6 +6,6 @@ data class UpdateChefRequest(
     val phone: String?,
     val location: String?,
     val cuisineType: String, // tipo cocina
-    val photoUrl: String?,
+    val avatar: String?,
     val socialLinks : List<String> = listOf("https://instagram.com/")
 )

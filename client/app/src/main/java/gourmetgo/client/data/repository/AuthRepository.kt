@@ -64,6 +64,7 @@ class AuthRepository(
 
     private suspend fun mapUserToChef() {
         val chef = apiService.getChefMe(token = "Bearer ${sharedPrefs.getToken()}")
+        Log.d("User Chef","$chef")
         sharedPrefs.saveChef(chef)
     }
 
@@ -142,7 +143,7 @@ class AuthRepository(
                 email = client.email,
                 phone = client.phone,
                 identification = client.identification,
-                photoUrl = client.avatar,
+                avatar = client.avatar,
                 preferences = client.preferences
             )
 
@@ -182,7 +183,7 @@ class AuthRepository(
                 email = chef.email,
                 phone = chef.phone,
                 location = chef.location,
-                photoUrl = chef.photoUrl,
+                avatar = chef.avatar,
                 cuisineType = chef.preferences[0]
             )
             val updatedChef = apiService.updateChefProfile("Bearer ${sharedPrefs.getToken()}", updateRequest).chef
