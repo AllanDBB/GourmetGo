@@ -3,6 +3,7 @@ package gourmetgo.client.data.remote
 import gourmetgo.client.data.models.dtos.LoginRequest
 import gourmetgo.client.data.models.dtos.LoginResponse
 import gourmetgo.client.data.models.dtos.ExperiencesResponse
+import gourmetgo.client.data.models.SpecificExperienceResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -18,4 +19,7 @@ interface ApiService {
 
     @GET("chefs/{id}/experiences")
     suspend fun getChefExperiences(@Path("id") id: String): ExperiencesResponse
+
+    @GET("experiences/{id}")
+    suspend fun getExperienceById(@Path("id") id: String): SpecificExperienceResponse
 }
