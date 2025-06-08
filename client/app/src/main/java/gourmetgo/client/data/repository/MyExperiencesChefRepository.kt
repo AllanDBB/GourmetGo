@@ -4,7 +4,6 @@ import android.util.Log
 import gourmetgo.client.data.remote.ApiService
 import gourmetgo.client.data.mockups.ExperiencesMockup
 import gourmetgo.client.data.models.Experience
-import gourmetgo.client.data.models.dtos.ExperiencesResponse
 import gourmetgo.client.data.models.User
 import kotlinx.coroutines.delay
 import gourmetgo.client.AppConfig
@@ -23,8 +22,12 @@ class MyExperiencesChefRepository(
             return Result.failure(Exception("Usuario no encontrado en SharedPrefs"))
         }
         return try {
-        getAllMyExperiencesWithApi(id)
-    } catch (e: Exception) {
+            if (AppConfig.USE_MOCKUP) {
+                getAllMyExperiencesWithMockup(id)
+            } else {
+                getAllMyExperiencesWithApi(id)
+            }
+        } catch (e: Exception) {
             Log.e("MyExperiencesChefRepository", "Error getting all experiences", e)
             Result.failure(Exception("Error connection: ${e.message}"))
         }
@@ -32,8 +35,9 @@ class MyExperiencesChefRepository(
 
     suspend fun getAllMyExperiencesWithApi(id: String): Result<List<Experience>> {
         return try {
-            val experiences = apiService.getChefExperiences(id).experiences
-            Log.d("MyExperiencesChefRepository", "Loaded ${experiences.size} experiences from API for chef $id")
+            Log.d("MyExperiencesChefRepository", "Llamando a getChefExperiences con id: $id")
+            val experiences = apiService.getChefExperiences(id)
+            Log.d("MyExperiencesChefRepository", "Loaded "+experiences.size+" experiences from API for chef "+id)
             Result.success(experiences)
         } catch (e: Exception) {
             Log.e("MyExperiencesChefRepository", "Error in API getAllMyExperiences", e)
@@ -41,7 +45,6 @@ class MyExperiencesChefRepository(
         }
     }
 
-    /* 
     suspend fun getAllMyExperiencesWithMockup(id: String): Result<List<Experience>> {
         return try {
             val experiences = ExperiencesMockup.getExperiencesByChef(id)
@@ -51,5 +54,5 @@ class MyExperiencesChefRepository(
             Log.e("MyExperiencesChefRepository", "Error in mockup getAllMyExperiences", e)
             Result.failure(Exception("Error loading mockup data"))
         }
-    }*/
+    }
 }

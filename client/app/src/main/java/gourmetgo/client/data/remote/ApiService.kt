@@ -10,6 +10,7 @@ import gourmetgo.client.data.models.dtos.UpdateChefResponse
 import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.models.dtos.UpdateUserResponse
 import gourmetgo.client.data.models.dtos.SpecificExperienceResponse
+import gourmetgo.client.data.models.Experience
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -26,7 +27,7 @@ interface ApiService {
     suspend fun getExperiences(): ExperiencesResponse
 
     @GET("chefs/{id}/experiences")
-    suspend fun getChefExperiences(@Path("id") id: String): ExperiencesResponse
+    suspend fun getChefExperiences(@Path("id") id: String): List<Experience>
 
     @GET("experiences/{id}")
     suspend fun getExperienceById(@Path("id") id: String): SpecificExperienceResponse
