@@ -14,7 +14,7 @@ exports.createExperience = async (req, res) => {
       return res.status(404).json({ message: 'Perfil de chef no encontrado.' });
     }
 
-    const experienceData = { ...req.body, chef: chefProfile._id };
+    const experienceData = { ...req.body, chef: userId };
     const experience = new Experience(experienceData);
     experience.remainingCapacity = experience.capacity; 
     await experience.save();
