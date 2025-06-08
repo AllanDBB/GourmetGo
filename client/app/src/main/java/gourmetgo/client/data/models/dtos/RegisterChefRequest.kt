@@ -1,4 +1,4 @@
-package gourmetgo.client.data.requests
+package gourmetgo.client.data.models.dtos
 
 data class RegisterChefRequest(
     val name: String,
