@@ -1,4 +1,4 @@
-package gourmetgo.client.utils
+package gourmetgo.client.enums
 
 enum class Preferences {
     ITALIAN,
@@ -16,4 +16,5 @@ enum class Preferences {
             OTHERS -> "Otros"
         }
     }
+
 }
