@@ -4,7 +4,7 @@ import android.net.Uri
 import android.util.Log
 import gourmetgo.client.data.localStorage.SharedPrefsManager
 import gourmetgo.client.data.models.Chef
-import gourmetgo.client.data.requests.RegisterChefRequest
+import gourmetgo.client.data.models.dtos.RegisterChefRequest
 import gourmetgo.client.data.remote.ApiService
 import gourmetgo.client.data.remote.CloudinaryService
 
