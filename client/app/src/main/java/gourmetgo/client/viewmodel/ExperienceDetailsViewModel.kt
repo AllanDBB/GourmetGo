@@ -14,7 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
 
 class ExperienceDetailsViewModel(
-    private val repository: ExperienceDetailsRepository
+    private val repository: ExperienceDetailsRepository,
     private val experienceId: String 
 ) : ViewModel() {
 

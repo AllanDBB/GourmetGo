@@ -6,27 +6,32 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.lifecycle.viewmodel.compose.viewModel
 import gourmetgo.client.viewmodel.statesUi.ExperienceDetailsUiState
 import gourmetgo.client.data.repository.ExperienceDetailsRepository
 import gourmetgo.client.viewmodel.ExperienceDetailsViewModel
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExperienceDetailsScreen(
-    viewModel: ExperienceDetailsViewModel
+    viewModel: ExperienceDetailsViewModel,
     onBack: (() -> Unit)? = null
 ) {
     
     val uiState = viewModel.uiState
 
     Scaffold(
+    
         topBar = {
             TopAppBar(
                 title = { Text("Detalles de la experiencia") },
                 navigationIcon = {
                     if (onBack != null) {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
                         }
                     }
                 }
@@ -63,8 +68,8 @@ fun ExperienceDetailsScreen(
                         .padding(padding),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(text = experience.name, style = MaterialTheme.typography.headlineMedium)
-                    Text(text = "Anfitrión: ${experience.host}", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = experience.title, style = MaterialTheme.typography.headlineMedium)
+                    Text(text = "Anfitrión: ${experience.chef}", style = MaterialTheme.typography.bodyMedium)
                     Text(text = "Ubicación: ${experience.location}", style = MaterialTheme.typography.bodyMedium)
                     Text(text = "Fecha: ${experience.date}", style = MaterialTheme.typography.bodyMedium)
                     Divider()

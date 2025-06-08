@@ -15,21 +15,16 @@ class MyExperiencesChefRepository(
     private val sprefsManager: SharedPrefsManager
 ) {
     suspend fun getAllMyExperiences(): Result<List<Experience>> {
-    
-        val id =sprefsManager.getUser()?.id ?: run {
+        Log.d("MyExperiencesChefRepository", "Entrando a getAllMyExperiences")
+        val chef = sprefsManager.getChef()
+            Log.d("MyExperiencesChefRepository", "Chef from SharedPrefs: $chef")
+        val id = chef?._id ?: run {
             Log.e("MyExperiencesChefRepository", "User ID is null in SharedPrefs")
             return Result.failure(Exception("Usuario no encontrado en SharedPrefs"))
         }
-        if (id == null) {
-            return Result.failure(Exception("Usuario no encontrado en SharedPrefs"))
-        }
         return try {
-            if (AppConfig.USE_MOCKUP) {
-                getAllMyExperiencesWithMockup(id)
-            } else {
-                getAllMyExperiencesWithApi(id)
-            }
-        } catch (e: Exception) {
+        getAllMyExperiencesWithApi(id)
+    } catch (e: Exception) {
             Log.e("MyExperiencesChefRepository", "Error getting all experiences", e)
             Result.failure(Exception("Error connection: ${e.message}"))
         }
@@ -46,6 +41,7 @@ class MyExperiencesChefRepository(
         }
     }
 
+    /* 
     suspend fun getAllMyExperiencesWithMockup(id: String): Result<List<Experience>> {
         return try {
             val experiences = ExperiencesMockup.getExperiencesByChef(id)
@@ -55,5 +51,5 @@ class MyExperiencesChefRepository(
             Log.e("MyExperiencesChefRepository", "Error in mockup getAllMyExperiences", e)
             Result.failure(Exception("Error loading mockup data"))
         }
-    }
+    }*/
 }

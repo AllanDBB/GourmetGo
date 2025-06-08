@@ -26,6 +26,7 @@ import gourmetgo.client.ui.components.ChefExperienceCard
 fun MyExperiencesChefScreen(
     viewModel: MyExperiencesChefViewModel,
     onNavigateToCreate: () -> Unit,
+    onNavigateToExperienceDetails: (String) -> Unit
 ) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
@@ -92,11 +93,6 @@ fun MyExperiencesChefScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("Crea una nueva experiencia con el botón +", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = onNavigateToCreate) {
-                            Icon(Icons.Default.Add, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Crear experiencia")
-                        }
                     }
                 }
             } else {
@@ -127,7 +123,7 @@ fun MyExperiencesChefScreen(
                     items(uiState.experiences) { experience ->
                         ChefExperienceCard(
                             experience = experience,
-                            onDetailsClick = {},
+                            onDetailsClick = { onNavigateToExperienceDetails(experience._id) },
                             modifier = Modifier
                         )
                     }

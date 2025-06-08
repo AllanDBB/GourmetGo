@@ -2,7 +2,8 @@ package gourmetgo.client.data.models
 
 
 data class Experience(
-    val id: String = "",
+    val menu: Menu,
+    val _id: String = "",
     val title: String = "",
     val description: String = "",
     val date: String = "",
@@ -17,4 +18,9 @@ data class Experience(
     val status: String = "Activa",
     val chef: String = "",
     val createdAt: String = ""
+)
+
+data class Menu(
+    val image: String = "",
+    val text: String = "",
 )
