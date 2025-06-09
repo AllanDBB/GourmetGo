@@ -6,7 +6,7 @@ import gourmetgo.client.data.localStorage.SharedPrefsManager
 import gourmetgo.client.data.mockups.ExperiencesMockup
 import gourmetgo.client.data.models.Experience
 import gourmetgo.client.data.models.dtos.LoginRequest
-import gourmetgo.client.data.models.dtos.SpecificExperienceResponse
+//import gourmetgo.client.data.models.dtos.SpecificExperienceResponse
 import gourmetgo.client.data.remote.ApiService
 import kotlinx.coroutines.delay
 
@@ -46,8 +46,10 @@ class ExperienceDetailsRepository(
 
     private suspend fun getExperienceDetailsWithApi(experienceId: String): Result<Experience> {
         return try {
-            val response = apiService.getExperienceById(experienceId).experience
-            Result.success(response)
+            Log.d("ExperienceDetailsRepository", "Fetching experience details from API for ID: $experienceId")
+            val experience = apiService.getExperienceById(experienceId)
+            Log.d("ExperienceDetailsRepository", "Received experience details: $experience")
+            Result.success(experience)
         } catch (e: Exception) {
             Log.e("ExperienceDetailsRepository", "Error in API fetch", e)
             Result.failure(Exception("Error : ${e.message}"))

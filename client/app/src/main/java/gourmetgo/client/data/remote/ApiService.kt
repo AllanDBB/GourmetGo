@@ -30,7 +30,7 @@ interface ApiService {
     suspend fun getChefExperiences(@Path("id") id: String): List<Experience>
 
     @GET("experiences/{id}")
-    suspend fun getExperienceById(@Path("id") id: String): SpecificExperienceResponse
+    suspend fun getExperienceById(@Path("id") id: String): Experience
 
     @GET("users/me")
     suspend fun getClientMe(@Header("Authorization") token: String): Client
