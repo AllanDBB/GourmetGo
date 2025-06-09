@@ -16,7 +16,7 @@ data class Experience(
     val images: List<String> = emptyList(),
     val requirements: String = "",
     val status: String = "Activa",
-    val chef: ChefBasic = ChefBasic(), // ← Cambio: de String a ChefBasic
+    val chef: String = "", // ← Cambio: de String a ChefBasic
     val createdAt: String = "",
     val menu: Menu? = null
 )
@@ -24,7 +24,4 @@ data class Experience(
 data class Menu(
     val image: String? = null,
     val text: String? = null
-)
-data class ChefBasic(
-    val _id: String = ""
 )
