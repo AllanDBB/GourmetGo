@@ -21,10 +21,6 @@ exports.updateMe = async (req, res) => {
     const userId = req.user.userId; // Asume autenticación JWT
     const { contactPerson, phone, location, cuisineType, photoUrl, bio, experience, socialLinks } = req.body;
 
-    // No permitir modificar nombre ni contraseña
-    if (name !== undefined || password !== undefined) {
-      return res.status(400).json({ message: 'No se puede modificar el nombre ni la contraseña.' });
-    }
 
     // Validar los campos a modificar
     const error = validateChefUpdate(req.body);
@@ -41,7 +37,6 @@ exports.updateMe = async (req, res) => {
     userProfile.phone = phone || userProfile.phone;
     userProfile.location = location || userProfile.location;
     userProfile.avatar = photoUrl || userProfile.avatar;
-    userProfile.name = contactPerson || userProfile.name;
     userProfile.preferences = cuisineType ? [cuisineType] : userProfile.preferences;
 
     await userProfile.save();
