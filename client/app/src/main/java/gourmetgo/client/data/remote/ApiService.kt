@@ -7,7 +7,7 @@ import gourmetgo.client.data.models.dtos.LoginResponse
 import gourmetgo.client.data.models.dtos.ExperiencesResponse
 import gourmetgo.client.data.models.dtos.RegisterUserRequest  
 import gourmetgo.client.data.models.dtos.RegisterResponse     
-import gourmetgo.client.data.requests.RegisterChefRequest
+import gourmetgo.client.data.models.dtos.RegisterChefRequest
 import gourmetgo.client.data.responses.RegisterChefResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
