@@ -1,6 +1,7 @@
 const ChefProfile = require('../models/chefProfileSchema');
 const { validateChefUpdate } = require('../utils/validators');
 const Experience = require('../models/experienceSchema');
+const User = require('../models/userSchema');
 
 exports.createChefProfile = async ({ userId, contactPerson, location, cuisineType, bio, experience, socialLinks }) => {
   const chefProfile = new ChefProfile({
