@@ -205,3 +205,21 @@ exports.getChefBookings = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener las reservaciones del chef.', error: err.message });
   }
 };
+
+
+exports.getExperienceBookings = async (req, res) => {
+  try {
+    const experienceId = req.params.id;
+    const bookings = await Booking.find({ experience: experienceId })
+      .populate('user', 'name email avatar')
+      .populate('experience', 'title date remainingCapacity');
+      
+    if (!bookings || bookings.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron reservaciones para esta experiencia.' });
+    }
+
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ message: 'Error al obtener las reservaciones de la experiencia.', error: err.message });
+  }
+};
