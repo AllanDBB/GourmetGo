@@ -1,5 +1,6 @@
 package gourmetgo.client.ui.screens
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -27,6 +28,7 @@ import gourmetgo.client.ui.components.FilterChip
 import gourmetgo.client.utils.BookingUtils
 import gourmetgo.client.viewmodel.BookingViewModel
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun BookExperienceScreen(
     experienceId: String,
@@ -39,9 +41,9 @@ fun BookExperienceScreen(
     val uiState = viewModel.uiState
     val scrollState = rememberScrollState()
 
-    var name by remember { mutableStateOf("Brian Ramirez") }
-    var email by remember { mutableStateOf("brianramirez01arias@gmail.com") }
-    var rawPhoneInput by remember { mutableStateOf("87044846") }
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var rawPhoneInput by remember { mutableStateOf("") }
     var phoneDisplayValue by remember { mutableStateOf("") }
     var people by remember { mutableIntStateOf(1) }
     var selectedPaymentMethod by remember { mutableStateOf("") }
@@ -148,268 +150,289 @@ fun BookExperienceScreen(
                             Text(
                                 text = "Disponibles: ${experience.remainingCapacity}/${experience.capacity}",
                                 fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (experience.remainingCapacity > 0) {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                } else {
+                                    MaterialTheme.colorScheme.error
+                                }
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Text(
-                        text = "Nombre completo *",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Start
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = {
-                            name = it
-                            nameError = ""
-                        },
-                        placeholder = { Text("Ingrese su nombre completo", fontSize = 14.sp) },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        isError = nameError.isNotEmpty(),
-                        supportingText = if (nameError.isNotEmpty()) {
-                            { Text(nameError, color = MaterialTheme.colorScheme.error) }
-                        } else null
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Correo electrónico *",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Start
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = {
-                            email = it.trim()
-                            emailError = ""
-                        },
-                        placeholder = { Text("ejemplo@gmail.com", fontSize = 14.sp) },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Email,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        isError = emailError.isNotEmpty(),
-                        supportingText = if (emailError.isNotEmpty()) {
-                            { Text(emailError, color = MaterialTheme.colorScheme.error) }
-                        } else null
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Teléfono",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Start
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    var isPhoneFocused by remember { mutableStateOf(false) }
-
-                    OutlinedTextField(
-                        value = if (isPhoneFocused) rawPhoneInput else phoneDisplayValue,
-                        onValueChange = { newValue ->
-                            val cleanInput = BookingUtils.cleanPhoneInput(newValue)
-                            if (cleanInput.length <= 8) {
-                                rawPhoneInput = cleanInput
-                                if (!isPhoneFocused && cleanInput.isNotEmpty()) {
-                                    phoneDisplayValue = BookingUtils.formatPhoneForDisplay(cleanInput)
-                                } else if (cleanInput.isEmpty()) {
-                                    phoneDisplayValue = ""
-                                }
-                                phoneError = ""
-                            }
-                        },
-                        placeholder = { Text("+506 8888 8888", fontSize = 14.sp) },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Phone,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onFocusChanged { focusState ->
-                                isPhoneFocused = focusState.isFocused
-                                if (!focusState.isFocused && rawPhoneInput.isNotEmpty()) {
-                                    phoneDisplayValue = BookingUtils.formatPhoneForDisplay(rawPhoneInput)
-                                    phoneError = if (!BookingUtils.isValidPhone(rawPhoneInput)) "El teléfono debe tener 8 dígitos" else ""
-                                }
-                            },
-                        singleLine = true,
-                        isError = phoneError.isNotEmpty(),
-                        supportingText = if (phoneError.isNotEmpty()) {
-                            { Text(phoneError, color = MaterialTheme.colorScheme.error) }
-                        } else null
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Cantidad de personas *",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Start
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedButton(
-                            onClick = { if (people > 1) people-- },
-                            enabled = people > 1,
-                            modifier = Modifier.size(48.dp)
+                    if (experience.remainingCapacity <= 0) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer
+                            ),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("-", fontSize = 18.sp)
+                            Text(
+                                text = "❌ Esta experiencia ya no tiene cupos disponibles",
+                                modifier = Modifier.padding(16.dp),
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                textAlign = TextAlign.Center
+                            )
                         }
+                    } else {
+                        Spacer(modifier = Modifier.height(24.dp))
 
                         Text(
-                            text = people.toString(),
-                            fontSize = 18.sp,
+                            text = "Nombre completo *",
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start
                         )
 
-                        OutlinedButton(
-                            onClick = { if (people < experience.remainingCapacity) people++ },
-                            enabled = people < experience.remainingCapacity,
-                            modifier = Modifier.size(48.dp)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = {
+                                name = it
+                                nameError = ""
+                            },
+                            placeholder = { Text("Ingrese su nombre completo", fontSize = 14.sp) },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            isError = nameError.isNotEmpty(),
+                            supportingText = if (nameError.isNotEmpty()) {
+                                { Text(nameError, color = MaterialTheme.colorScheme.error) }
+                            } else null
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Correo electrónico *",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = {
+                                email = it.trim()
+                                emailError = ""
+                            },
+                            placeholder = { Text("ejemplo@gmail.com", fontSize = 14.sp) },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Email,
+                                imeAction = ImeAction.Next
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            isError = emailError.isNotEmpty(),
+                            supportingText = if (emailError.isNotEmpty()) {
+                                { Text(emailError, color = MaterialTheme.colorScheme.error) }
+                            } else null
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Teléfono",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        var isPhoneFocused by remember { mutableStateOf(false) }
+
+                        OutlinedTextField(
+                            value = if (isPhoneFocused) rawPhoneInput else phoneDisplayValue,
+                            onValueChange = { newValue ->
+                                val cleanInput = BookingUtils.cleanPhoneInput(newValue)
+                                if (cleanInput.length <= 8) {
+                                    rawPhoneInput = cleanInput
+                                    if (!isPhoneFocused && cleanInput.isNotEmpty()) {
+                                        phoneDisplayValue = BookingUtils.formatPhoneForDisplay(cleanInput)
+                                    } else if (cleanInput.isEmpty()) {
+                                        phoneDisplayValue = ""
+                                    }
+                                    phoneError = ""
+                                }
+                            },
+                            placeholder = { Text("+506 8888 8888", fontSize = 14.sp) },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Phone,
+                                imeAction = ImeAction.Next
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { focusState ->
+                                    isPhoneFocused = focusState.isFocused
+                                    if (!focusState.isFocused && rawPhoneInput.isNotEmpty()) {
+                                        phoneDisplayValue = BookingUtils.formatPhoneForDisplay(rawPhoneInput)
+                                        phoneError = if (!BookingUtils.isValidPhone(rawPhoneInput)) "El teléfono debe tener 8 dígitos" else ""
+                                    }
+                                },
+                            singleLine = true,
+                            isError = phoneError.isNotEmpty(),
+                            supportingText = if (phoneError.isNotEmpty()) {
+                                { Text(phoneError, color = MaterialTheme.colorScheme.error) }
+                            } else null
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Cantidad de personas *",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("+", fontSize = 18.sp)
+                            OutlinedButton(
+                                onClick = { if (people > 1) people-- },
+                                enabled = people > 1,
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Text("-", fontSize = 18.sp)
+                            }
+
+                            Text(
+                                text = people.toString(),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+
+                            OutlinedButton(
+                                onClick = { if (people < experience.remainingCapacity) people++ },
+                                enabled = people < experience.remainingCapacity,
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Text("+", fontSize = 18.sp)
+                            }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(
-                        text = "Método de pago *",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Start
-                    )
+                        Text(
+                            text = "Método de pago *",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start
+                        )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        paymentMethods.forEach { method ->
-                            FilterChip(
-                                onClick = {
-                                    selectedPaymentMethod = method
-                                    paymentMethodError = ""
-                                },
-                                label = {
-                                    Text(
-                                        text = method,
-                                        fontSize = 14.sp
-                                    )
-                                },
-                                selected = selectedPaymentMethod == method,
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            paymentMethods.forEach { method ->
+                                FilterChip(
+                                    onClick = {
+                                        selectedPaymentMethod = method
+                                        paymentMethodError = ""
+                                    },
+                                    label = {
+                                        Text(
+                                            text = method,
+                                            fontSize = 14.sp
+                                        )
+                                    },
+                                    selected = selectedPaymentMethod == method,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+
+                        if (paymentMethodError.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = paymentMethodError,
+                                color = MaterialTheme.colorScheme.error,
+                                fontSize = 12.sp,
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
-                    }
 
-                    if (paymentMethodError.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = paymentMethodError,
-                            color = MaterialTheme.colorScheme.error,
-                            fontSize = 12.sp,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = termsAccepted,
-                            onCheckedChange = { termsAccepted = it }
-                        )
-                        Text(
-                            text = "Acepto los términos y condiciones *",
-                            fontSize = 14.sp,
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Resumen de la reserva",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            Checkbox(
+                                checked = termsAccepted,
+                                onCheckedChange = { termsAccepted = it }
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Personas: $people",
+                                text = "Acepto los términos y condiciones *",
                                 fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                modifier = Modifier.padding(start = 8.dp)
                             )
-                            Text(
-                                text = "Precio por persona: ₡${String.format("%,.0f", experience.price)}",
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
                             )
-                            Text(
-                                text = "Total: ₡${String.format("%,.0f", experience.price * people)}",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp)
+                            ) {
+                                Text(
+                                    text = "Resumen de la reserva",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Personas: $people",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    text = "Precio por persona: ₡${String.format("%,.0f", experience.price)}",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    text = "Total: ₡${String.format("%,.0f", experience.price * people)}",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
                         }
                     }
 
@@ -429,7 +452,7 @@ fun BookExperienceScreen(
                                 )
                             }
                         },
-                        enabled = !uiState.isBooking && uiState.experience.remainingCapacity>0,
+                        enabled = !uiState.isBooking && (uiState.experience.remainingCapacity ) > 0,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),

@@ -10,6 +10,10 @@ import gourmetgo.client.AppConfig
 import gourmetgo.client.data.repository.BookingRepository
 import gourmetgo.client.viewmodel.statesUi.BookingUiState
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class BookingViewModel(
     private val repository: BookingRepository
@@ -35,18 +39,20 @@ class BookingViewModel(
                         }
                     }
                     .onFailure { error ->
+                        val userMessage = mapErrorToUserMessage(error)
                         uiState = uiState.copy(
                             isLoading = false,
-                            error = error.message ?: "Error loading experience"
+                            error = userMessage
                         )
                         if (AppConfig.ENABLE_LOGGING) {
                             Log.e("BookingViewModel", "Error loading experience", error)
                         }
                     }
             } catch (e: Exception) {
+                val userMessage = mapErrorToUserMessage(e)
                 uiState = uiState.copy(
                     isLoading = false,
-                    error = "Unexpected error: ${e.message}"
+                    error = userMessage
                 )
                 if (AppConfig.ENABLE_LOGGING) {
                     Log.e("BookingViewModel", "Unexpected error in loadExperience", e)
@@ -65,7 +71,7 @@ class BookingViewModel(
         paymentMethod: String
     ) {
         if (name.isBlank() || email.isBlank() || paymentMethod.isBlank() || !termsAccepted) {
-            uiState = uiState.copy(error = "All required fields must be completed")
+            uiState = uiState.copy(error = "Todos los campos requeridos deben estar completos")
             return
         }
 
@@ -94,22 +100,51 @@ class BookingViewModel(
                         }
                     }
                     .onFailure { error ->
+                        val userMessage = mapErrorToUserMessage(error)
                         uiState = uiState.copy(
                             isBooking = false,
-                            error = error.message ?: "Error creating booking"
+                            error = userMessage
                         )
                         if (AppConfig.ENABLE_LOGGING) {
                             Log.e("BookingViewModel", "Error creating booking", error)
                         }
                     }
             } catch (e: Exception) {
+                val userMessage = mapErrorToUserMessage(e)
                 uiState = uiState.copy(
                     isBooking = false,
-                    error = "Unexpected error: ${e.message}"
+                    error = userMessage
                 )
                 if (AppConfig.ENABLE_LOGGING) {
                     Log.e("BookingViewModel", "Unexpected error in createBooking", e)
                 }
+            }
+        }
+    }
+
+    private fun mapErrorToUserMessage(error: Throwable): String {
+        return when (error) {
+            is HttpException -> {
+                when (error.code()) {
+                    400 -> "Los datos ingresados no son válidos. Revisa la información."
+                    401 -> "Tu sesión ha expirado. Inicia sesión nuevamente."
+                    403 -> "No tienes permisos para realizar esta acción."
+                    404 -> "La experiencia solicitada no existe."
+                    409 -> "Ya tienes una reservación para esta experiencia."
+                    422 -> "Los datos no cumplen los requisitos. Verifica la información."
+                    429 -> "Demasiadas solicitudes. Espera un momento e intenta nuevamente."
+                    in 500..599 -> "Error del servidor. Intenta nuevamente en unos minutos."
+                    else -> "Error del servidor (${error.code()}). Intenta nuevamente."
+                }
+            }
+            is ConnectException, is UnknownHostException -> {
+                "No se pudo conectar al servidor. Revisa tu conexión a internet."
+            }
+            is SocketTimeoutException -> {
+                "La conexión tardó demasiado. Intenta nuevamente."
+            }
+            else -> {
+                "Ocurrió un error inesperado. Intenta nuevamente."
             }
         }
     }

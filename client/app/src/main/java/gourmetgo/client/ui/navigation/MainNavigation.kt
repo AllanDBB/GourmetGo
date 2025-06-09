@@ -49,8 +49,9 @@ fun MainNavigation(
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
-                    navController.navigate("book_experience/6845e25390da68a160e7166d") {
-                        popUpTo("login") { inclusive = true } // borra login del back stack
+                    navController.navigate("experiences") {
+                        popUpTo("login") { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )
@@ -60,13 +61,20 @@ fun MainNavigation(
             ExperiencesScreen(
                 viewModel = experiencesViewModel,
                 onNavigateToProfile = {
-                    navController.navigate("edit_profile")
-                    // No popUpTo, porque queremos poder volver con "Atrás"
+                    navController.navigate("edit_profile") {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToBooking = { experienceId ->
+                    navController.navigate("book_experience/$experienceId") {
+                        launchSingleTop = true
+                    }
                 },
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate("login") {
-                        popUpTo("experiences") { inclusive = true } // borra experiencias del back stack
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )
@@ -76,7 +84,7 @@ fun MainNavigation(
             EditProfileScreen(
                 viewModel = profileViewModel,
                 onNavigateBack = {
-                    navController.popBackStack() // vuelve a experiences sin duplicarlo
+                    navController.popBackStack()
                 }
             )
         }
@@ -87,7 +95,8 @@ fun MainNavigation(
         ) { backStackEntry ->
             val experienceId = backStackEntry.arguments?.getString("experienceId") ?: ""
             val bookingViewModel: BookingViewModel = viewModel(
-                factory = BookingViewModelFactory(context)
+                factory = BookingViewModelFactory(context),
+                key = "booking_$experienceId"
             )
 
             BookExperienceScreen(
@@ -99,6 +108,7 @@ fun MainNavigation(
                 onBookingSuccess = {
                     navController.navigate("experiences") {
                         popUpTo("book_experience/{experienceId}") { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )
