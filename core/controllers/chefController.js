@@ -33,9 +33,17 @@ exports.updateMe = async (req, res) => {
     // Buscar el perfil de chef por el userId
     const chefProfile = await ChefProfile.findOneAndUpdate(
       { user: userId },
-      { $set: { contactPerson, phone, location, cuisineType, photoUrl, bio, experience, socialLinks } },
+      { $set: { contactPerson, phone, location, cuisineType, bio, experience, socialLinks } },
       { new: true }
     );
+
+    // Update profile picture:
+    if (photoUrl) {
+      chefProfile.avatar = photoUrl;
+      await chefProfile.save();
+    }
+
+
 
     if (!chefProfile) {
       return res.status(404).json({ message: 'Perfil de chef no encontrado.' });
