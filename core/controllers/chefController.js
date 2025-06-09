@@ -19,7 +19,7 @@ exports.createChefProfile = async ({ userId, contactPerson, location, cuisineTyp
 exports.updateMe = async (req, res) => {
   try {
     const userId = req.user.userId; // Asume autenticación JWT
-    const { contactPerson, phone, location, cuisineType, photoUrl, bio, experience, socialLinks, name, password } = req.body;
+    const { contactPerson, phone, location, cuisineType, photoUrl, bio, experience, socialLinks } = req.body;
 
     // No permitir modificar nombre ni contraseña
     if (name !== undefined || password !== undefined) {
@@ -30,24 +30,31 @@ exports.updateMe = async (req, res) => {
     const error = validateChefUpdate(req.body);
     if (error) return res.status(400).json({ message: error });
 
-    // Buscar el perfil de chef por el userId
-    const chefProfile = await ChefProfile.findOneAndUpdate(
-      { user: userId },
-      { $set: { contactPerson, phone, location, cuisineType, bio, experience, socialLinks } },
-      { new: true }
-    );
+    // Buscar usuario:
+    const userProfile = await User.findById(userId);
 
-    // Update profile picture:
-    if (photoUrl) {
-      chefProfile.avatar = photoUrl;
-      await chefProfile.save();
+    if (!userProfile) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
 
+    // Actualizar el perfil del usuario (phone, location, photoUrl, name, password)
+    userProfile.phone = phone || userProfile.phone;
+    userProfile.location = location || userProfile.location;
+    userProfile.avatar = photoUrl || userProfile.avatar;
+    userProfile.name = contactPerson || userProfile.name;
+    userProfile.preferences = cuisineType ? [cuisineType] : userProfile.preferences;
 
+    await userProfile.save();
 
-    if (!chefProfile) {
-      return res.status(404).json({ message: 'Perfil de chef no encontrado.' });
-    }
+    // Buscar o crear el perfil de chef
+    let chefProfile = await ChefProfile.findOne({ user: userId });
+    
+    chefProfile.contactPerson = contactPerson || chefProfile.contactPerson;
+    chefProfile.bio = bio || chefProfile.bio;
+    chefProfile.experience = experience || chefProfile.experience;
+    chefProfile.socialLinks = socialLinks || chefProfile.socialLinks;
+
+    await chefProfile.save();
 
     res.json({ message: 'Perfil de chef actualizado correctamente.', chef: chefProfile });
   } catch (err) {

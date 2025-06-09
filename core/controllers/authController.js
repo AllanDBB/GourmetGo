@@ -62,14 +62,13 @@ exports.registerChef = async (req, res) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: 'El correo electrónico ya está en uso.' });
-    const fakeIdentifcation = ""; //Note: The API is throwing an error if identification is not provided, but the chef does not require it.
+  
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
       name,
       email,
       phone,
-      identification: fakeIdentifcation, // Chef registration does not require identification
       password: hashedPassword,
       avatar: photoUrl,
       role: 'chef'
