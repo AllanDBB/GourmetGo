@@ -13,12 +13,15 @@ import androidx.navigation.navArgument
 import gourmetgo.client.ui.screens.EditProfileScreen
 import gourmetgo.client.ui.screens.LoginScreen
 import gourmetgo.client.ui.screens.ExperiencesScreen
+import gourmetgo.client.ui.screens.BookingHistoryScreen
 import gourmetgo.client.viewmodel.AuthViewModel
 import gourmetgo.client.viewmodel.ExperiencesViewModel
 import gourmetgo.client.viewmodel.ProfileViewModel
+import gourmetgo.client.viewmodel.BookingHistoryViewModel
 import gourmetgo.client.viewmodel.factories.AuthViewModelFactory
 import gourmetgo.client.viewmodel.factories.ExperiencesViewModelFactory
 import gourmetgo.client.viewmodel.factories.ProfileViewModelFactory
+import gourmetgo.client.viewmodel.factories.BookingHistoryViewModelFactory
 import gourmetgo.client.ui.screens.BookExperienceScreen
 import gourmetgo.client.viewmodel.BookingViewModel
 import gourmetgo.client.viewmodel.factories.BookingViewModelFactory
@@ -49,7 +52,7 @@ fun MainNavigation(
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
-                    navController.navigate("experiences") {
+                    navController.navigate("booking_history") {
                         popUpTo("login") { inclusive = true }
                         launchSingleTop = true
                     }
@@ -83,6 +86,19 @@ fun MainNavigation(
         composable("edit_profile") {
             EditProfileScreen(
                 viewModel = profileViewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("booking_history") {
+            val bookingHistoryViewModel: BookingHistoryViewModel = viewModel(
+                factory = BookingHistoryViewModelFactory(context)
+            )
+
+            BookingHistoryScreen(
+                viewModel = bookingHistoryViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
                 }
