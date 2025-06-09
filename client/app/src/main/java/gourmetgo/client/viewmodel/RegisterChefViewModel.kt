@@ -45,10 +45,7 @@ class RegisterChefViewModel(
         return phone.all { it.isDigit() }
     }
 
-    private fun isValidExperience(experience: String): Boolean {
-        // Debe ser un número seguido de "años" o solo números
-        return experience.matches(Regex("^\\d+\\s*(años?|año)?$")) || experience.all { it.isDigit() }
-    }
+
 
     private fun validateForm(): Boolean {
         var isValid = true
@@ -119,19 +116,14 @@ class RegisterChefViewModel(
         if (uiState.bio.isBlank()) {
             bioError = "La biografía es requerida"
             isValid = false
-        } else if (uiState.bio.length < 50) {
-            bioError = "La biografía debe tener al menos 50 caracteres"
-            isValid = false
         }
 
         // Validar experiencia
         if (uiState.experience.isBlank()) {
             experienceError = "Los años de experiencia son requeridos"
             isValid = false
-        } else if (!isValidExperience(uiState.experience)) {
-            experienceError = "Formato inválido (ej: '15 años' o '15')"
-            isValid = false
         }
+
 
         // Validar foto
         if (uiState.selectedImageUri == null) {

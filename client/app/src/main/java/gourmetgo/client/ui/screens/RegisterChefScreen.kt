@@ -299,7 +299,7 @@ fun RegisterChefScreen(
         OutlinedTextField(
             value = uiState.bio,
             onValueChange = viewModel::updateBio,
-            label = { Text("Biografía (mínimo 50 caracteres)") },
+            label = { Text("Biografía") },
             leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
             isError = uiState.bioError != null,
             supportingText = uiState.bioError?.let { { Text(it) } },
