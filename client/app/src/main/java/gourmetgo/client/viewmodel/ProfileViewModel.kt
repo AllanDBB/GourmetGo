@@ -221,7 +221,7 @@ class ProfileViewModel(
         phone: String,
         contactPerson: String,
         location: String,
-        cuisineType: String
+        cuisineTypes: List<String>
     ) {
         if (name.isBlank() || email.isBlank()) {
             uiState = uiState.copy(error = "Nombre y correo son obligatorios")
@@ -243,6 +243,11 @@ class ProfileViewModel(
             return
         }
 
+        if (cuisineTypes.isEmpty()) {
+            uiState = uiState.copy(error = "Debe seleccionar al menos un tipo de cocina")
+            return
+        }
+
         val currentChef = uiState.chef
         if (currentChef == null) {
             uiState = uiState.copy(error = "No se encontraron datos del chef")
@@ -259,7 +264,7 @@ class ProfileViewModel(
                     phone = phone,
                     contactPerson = contactPerson,
                     location = location,
-                    preferences = listOf(cuisineType)
+                    preferences = cuisineTypes
                 )
 
                 authRepository.updateChefProfile(updatedChef)
