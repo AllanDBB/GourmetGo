@@ -28,6 +28,7 @@ import gourmetgo.client.ui.components.FilterChip
 fun ExperiencesScreen(
     viewModel: ExperiencesViewModel,
     onNavigateToProfile: () -> Unit,
+    onNavigateToBooking: (String) -> Unit,
     onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -254,8 +255,7 @@ fun ExperiencesScreen(
                             ExperienceCard(
                                 experience = experience,
                                 onBookClick = {
-                                    // TODO: Implement reserve navigation
-                                    Toast.makeText(context, "Próximamente: Reservar ${experience.title}", Toast.LENGTH_SHORT).show()
+                                    onNavigateToBooking(experience._id)
                                 }
                             )
                         }

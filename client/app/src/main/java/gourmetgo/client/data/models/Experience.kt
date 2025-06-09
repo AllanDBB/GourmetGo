@@ -1,8 +1,9 @@
 package gourmetgo.client.data.models
 
+import com.google.gson.annotations.SerializedName
 
 data class Experience(
-    val id: String = "",
+    val _id: String = "",
     val title: String = "",
     val description: String = "",
     val date: String = "",
@@ -15,6 +16,12 @@ data class Experience(
     val images: List<String> = emptyList(),
     val requirements: String = "",
     val status: String = "Activa",
-    val chef: String = "",
-    val createdAt: String = ""
+    val chef: String = "", // ← Cambio: de String a ChefBasic
+    val createdAt: String = "",
+    val menu: Menu? = null
+)
+
+data class Menu(
+    val image: String? = null,
+    val text: String? = null
 )
