@@ -43,7 +43,7 @@ class AuthRepository(
                 "chef" -> {
                     mapUserToChef()
                     if (AppConfig.ENABLE_LOGGING)
-                        Log.d("AuthRepository", "API login successful for user: ${response.user.email}, role: ${response.user.role}")
+                        Log.d("AuthRepository", "API login successful for chef: ${response.user.email}, role: ${response.user.role}")
                     Result.success(response.user)
                 }
                 else -> {
