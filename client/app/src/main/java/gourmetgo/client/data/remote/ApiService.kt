@@ -13,6 +13,7 @@ import gourmetgo.client.data.models.dtos.UpdateChefRequest
 import gourmetgo.client.data.models.dtos.UpdateChefResponse
 import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.models.dtos.UpdateUserResponse
+import gourmetgo.client.data.models.dtos.UpdateExperienceRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -59,4 +60,11 @@ interface ApiService {
 
     @GET("experiences/{id}")
     suspend fun getExperienceById(@Path("id") id: String): Experience
+
+    @PUT("experiences/{id}")
+    suspend fun updateExperience(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body request: UpdateExperienceRequest
+    ): Experience
 }
