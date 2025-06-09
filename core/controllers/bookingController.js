@@ -72,17 +72,16 @@ exports.createBooking = async (req, res) => {
     await experience.save();
 
 
-    // Generar PDF temporal
-    const pdfPath = path.join(__dirname, '..', 'extra', 'mail', `qr-${booking._id}.pdf`);
-    await createBookingPDF({
+    // Generar PDF en memoria (Buffer)
+    const pdfBuffer = await createBookingPDF({
       name,
       experienceTitle: experience.title,
       date: experience.date.toLocaleString(),
       people,
       qrCodes
-    }, pdfPath);
+    });
 
-    // Enviar correo con PDF adjunto
+    // Enviar correo con PDF adjunto (Buffer)
     await mailer.sendMailTemplate(
       email,
       'Confirmación de reservación',
@@ -99,13 +98,10 @@ exports.createBooking = async (req, res) => {
       [
         {
           filename: 'entradas.pdf',
-          path: pdfPath
+          content: pdfBuffer
         }
       ]
     );
-
-    // Elimina el PDF temporal después de enviar
-    fs.unlink(pdfPath, () => {});
 
     res.status(201).json({ message: 'Reservación realizada exitosamente.', booking });
   } catch (err) {
