@@ -39,9 +39,9 @@ fun BookExperienceScreen(
     val uiState = viewModel.uiState
     val scrollState = rememberScrollState()
 
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var rawPhoneInput by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("Brian Ramirez") }
+    var email by remember { mutableStateOf("brianramirez01arias@gmail.com") }
+    var rawPhoneInput by remember { mutableStateOf("87044846") }
     var phoneDisplayValue by remember { mutableStateOf("") }
     var people by remember { mutableIntStateOf(1) }
     var selectedPaymentMethod by remember { mutableStateOf("") }
@@ -429,7 +429,7 @@ fun BookExperienceScreen(
                                 )
                             }
                         },
-                        enabled = !uiState.isBooking,
+                        enabled = !uiState.isBooking && uiState.experience.remainingCapacity>0,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),

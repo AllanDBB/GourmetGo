@@ -40,7 +40,7 @@ class BookingRepository(
                 termsAccepted = termsAccepted,
                 paymentMethod = paymentMethod
             )
-
+            Log.d("Booking","Sending $request")
             val response = apiService.createBooking("Bearer $token", request)
 
             if (AppConfig.ENABLE_LOGGING) {

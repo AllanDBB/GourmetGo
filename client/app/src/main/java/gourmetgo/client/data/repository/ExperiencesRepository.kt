@@ -2,7 +2,6 @@ package gourmetgo.client.data.repository
 
 import android.util.Log
 import gourmetgo.client.data.remote.ApiService
-import gourmetgo.client.data.mockups.ExperiencesMockup
 import gourmetgo.client.data.models.Experience
 import kotlinx.coroutines.delay
 import gourmetgo.client.AppConfig
@@ -27,7 +26,7 @@ class ExperiencesRepository(
     private suspend fun getAllExperiencesWithMockup(): Result<List<Experience>> {
         delay(800)
         return try {
-            val experiences = ExperiencesMockup.getAllExperiences()
+            val experiences = listOf(Experience())
             Log.d("ExperiencesRepository", "Loaded ${experiences.size} experiences from mockup")
             Result.success(experiences)
         } catch (e: Exception) {
@@ -64,7 +63,7 @@ class ExperiencesRepository(
     private suspend fun getAvailableCategoriesWithMockup(): Result<List<String>> {
         delay(300)
         return try {
-            val categories = ExperiencesMockup.getAvailableCategories()
+            val categories = listOf("")
             Log.d("ExperiencesRepository", "Loaded ${categories.size} categories from mockup")
             Result.success(categories)
         } catch (e: Exception) {
