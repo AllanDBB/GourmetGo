@@ -8,17 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gourmetgo.client.viewmodel.statesUi.AuthUiState
 import gourmetgo.client.data.repository.AuthRepository
-import gourmetgo.client.data.models.User  // ← AGREGAR IMPORT
+import gourmetgo.client.data.models.User  
 import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.Chef
 import kotlinx.coroutines.launch
 
-/**
- * AuthViewModel - ViewModel de autenticación unificado
- * 
- * Maneja login tanto para usuarios normales como chefs.
- * Detecta automáticamente el tipo de usuario según la respuesta de la API.
- */
 class AuthViewModel(
     private val repository: AuthRepository
 ) : ViewModel() {
@@ -233,32 +227,20 @@ class AuthViewModel(
         }
     }
 
-    // ========== HELPERS (igual) ==========
-
-    /**
-     * Obtiene el usuario actual como Client (solo si es usuario normal)
-     */
     fun getCurrentClient(): Client? {
         return uiState.currentUser as? Client
     }
 
-    /**
-     * Obtiene el usuario actual como Chef (solo si es chef)
-     */
     fun getCurrentChef(): Chef? {
         return uiState.currentUser as? Chef
     }
 
-    /**
-     * Verifica si el usuario actual es un cliente normal
-     */
+
     fun isUserClient(): Boolean {
         return uiState.userType == "user"
     }
 
-    /**
-     * Verifica si el usuario actual es un chef
-     */
+
     fun isUserChef(): Boolean {
         return uiState.userType == "chef"
     }

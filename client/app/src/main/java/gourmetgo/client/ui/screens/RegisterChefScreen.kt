@@ -62,11 +62,12 @@ fun RegisterChefScreen(
             val imageFile = File(context.cacheDir, "temp_photo_${System.currentTimeMillis()}.jpg")
             FileProvider.getUriForFile(
                 context,
-                "${context.packageName}.provider",
+                "gourmetgo.client.fileprovider", 
                 imageFile
             )
         }
     }
+
 
     // Launcher para tomar foto
     val cameraLauncher = rememberLauncherForActivityResult(

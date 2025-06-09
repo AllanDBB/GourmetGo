@@ -9,4 +9,8 @@ object AppConfig {
     const val ENABLE_LOGGING = true
     //Param to config a delay when using mockups in the requests
     const val MOCK_NETWORK_DELAY = 800L //mil seconds
+
+     private const val CLOUD_NAME = "dsr48ffu2"
+     const val UPLOAD_PRESET = "gourmetgo_users"
+     const val CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/$CLOUD_NAME/image/upload"
 }

@@ -30,7 +30,7 @@
         <!-- FileProvider para compartir archivos de cámara -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.provider"
+            android:authorities="gourmetgo.client.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

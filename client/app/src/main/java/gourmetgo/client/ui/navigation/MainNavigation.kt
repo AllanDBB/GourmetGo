@@ -20,6 +20,12 @@ import gourmetgo.client.viewmodel.factories.AuthViewModelFactory
 import gourmetgo.client.viewmodel.factories.ExperiencesViewModelFactory
 import gourmetgo.client.viewmodel.factories.RegisterUserViewModelFactory
 import gourmetgo.client.viewmodel.factories.RegisterChefViewModelFactory
+/* 
+import gourmetgo.client.viewmodel.BookingViewModel
+import gourmetgo.client.viewmodel.factories.BookingViewModelFactory
+import gourmetgo.client.ui.screens.BookExperienceScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument*/
 
 @Composable
 fun MainNavigation(
@@ -62,7 +68,7 @@ fun MainNavigation(
                 },
                 onNavigateToRegister = {
                     navController.navigate("register")
-                },
+                }
             )
         }
 
@@ -111,6 +117,7 @@ fun MainNavigation(
             ExperiencesScreen(
                 viewModel = experiencesViewModel,
                 onNavigateToProfile = {
+                    // Por ahora navega a login, cambiar más tarde por edit_profile
                     navController.navigate("login")
                 },
                 onLogout = {
@@ -123,3 +130,61 @@ fun MainNavigation(
         }
     }
 }
+        
+/* 
+       composable("experiences") {
+            ExperiencesScreen(
+                viewModel = experiencesViewModel,
+                onNavigateToProfile = {
+                    navController.navigate("edit_profile") {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToBooking = { experienceId ->
+                    navController.navigate("book_experience/$experienceId") {
+                        launchSingleTop = true
+                    }
+                },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable("edit_profile") {
+            EditProfileScreen(
+                viewModel = profileViewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            "book_experience/{experienceId}",
+            arguments = listOf(navArgument("experienceId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val experienceId = backStackEntry.arguments?.getString("experienceId") ?: ""
+            val bookingViewModel: BookingViewModel = viewModel(
+                factory = BookingViewModelFactory(context),
+                key = "booking_$experienceId"
+            )
+
+            BookExperienceScreen(
+                experienceId = experienceId,
+                viewModel = bookingViewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onBookingSuccess = {
+                    navController.navigate("experiences") {
+                        popUpTo("book_experience/{experienceId}") { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }*/

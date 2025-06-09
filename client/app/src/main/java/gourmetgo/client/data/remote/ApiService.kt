@@ -13,6 +13,13 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+/* 
+import gourmetgo.client.data.models.dtos.MyBookingsResponse
+import gourmetgo.client.data.models.dtos.UpdateChefRequest
+import gourmetgo.client.data.models.dtos.UpdateChefResponse
+import gourmetgo.client.data.models.dtos.UpdateClientRequest
+import gourmetgo.client.data.models.dtos.UpdateUserResponse
+*/
 
 interface ApiService {
 
@@ -34,4 +41,33 @@ interface ApiService {
     @GET("users/me")
     suspend fun getChefMe(@Header("Authorization") token: String): Chef
 
+/*
+
+    @PUT("users/me")
+    suspend fun updateClientProfile(
+        @Header("Authorization") token: String,
+        @Body request: UpdateClientRequest
+    ): UpdateUserResponse
+
+    @PUT("chefs/me")
+    suspend fun updateChefProfile(
+        @Header("Authorization") token: String,
+        @Body request: UpdateChefRequest
+    ): UpdateChefResponse
+
+    @POST("bookings")
+    suspend fun createBooking(
+        @Header("Authorization") token: String,
+        @Body request: BookingRequest
+    ): BookingResponse
+
+    @GET("bookings/my")
+    suspend fun getMyBookings(
+        @Header("Authorization") token: String
+    ): MyBookingsResponse
+
+    @GET("experiences/{id}")
+    suspend fun getExperienceById(@Path("id") id: String): Experience
+
+ */
 }

@@ -8,6 +8,9 @@ import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.User
 import gourmetgo.client.data.models.dtos.LoginRequest
 import gourmetgo.client.data.remote.ApiService
+/*import gourmetgo.client.data.models.dtos.UpdateChefRequest
+import gourmetgo.client.data.models.dtos.UpdateClientRequest
+ */
 
 class AuthRepository(
     private val apiService: ApiService,
@@ -62,6 +65,7 @@ class AuthRepository(
 
     private suspend fun mapUserToChef() {
         val chef = apiService.getChefMe(token = "Bearer ${sharedPrefs.getToken()}")
+        Log.d("User Chef","$chef")
         sharedPrefs.saveChef(chef)
     }
 
@@ -95,12 +99,117 @@ class AuthRepository(
         }
     }
 
-    fun logout() {
+fun logout() {
         if (AppConfig.ENABLE_LOGGING) {
             Log.d("AuthRepository", "Logging out user")
         }
         sharedPrefs.logout()
     }
+/* 
+    suspend fun updateClientProfile(client: Client): Result<Client> {
+        return try {
+            if (AppConfig.USE_MOCKUP) {
+                Result.success(Client())
+            } else {
+                updateClientWithApi(client)
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error updating user profile", e)
+            Result.failure(Exception("Error updating user profile: ${e.message}"))
+        }
+    }
+
+    suspend fun updateChefProfile(chef: Chef): Result<Chef> {
+        return try {
+            if (AppConfig.USE_MOCKUP) {
+                Result.success(Chef())
+            } else {
+                updateChefWithApi(chef)
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error updating user profile", e)
+            Result.failure(Exception("Error updating user profile: ${e.message}"))
+        }
+    }
+
+    private suspend fun updateClientWithApi(client: Client): Result<Client> {
+        return try {
+            val token = sharedPrefs.getToken()
+            if (token == null) {
+                Log.e("AuthRepository", "No token found for API update")
+                return Result.failure(Exception("No token found for API update"))
+            }
+
+            val updateRequest = UpdateClientRequest(
+                email = client.email,
+                phone = client.phone,
+                identification = client.identification,
+                avatar = client.avatar,
+                preferences = client.preferences
+            )
+
+            val updatedClient = apiService.updateClientProfile("Bearer $token", updateRequest).user
+
+            sharedPrefs.saveClient(updatedClient)
+
+            val currentUser = sharedPrefs.getUser()
+            currentUser?.let { user ->
+                val updatedUser = user.copy(
+                    name = updatedClient.name,
+                    email = updatedClient.email
+                )
+                sharedPrefs.saveUser(updatedUser)
+            }
+
+            if (AppConfig.ENABLE_LOGGING)
+                Log.d("AuthRepository", "User updated via API: ${sharedPrefs.getUser()?.name}")
+            Result.success(updatedClient)
+
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error in API updateUser", e)
+            Result.failure(Exception("Error in API updateUser"))
+        }
+    }
+
+    private suspend fun updateChefWithApi(chef: Chef): Result<Chef> {
+        return try {
+            val token = sharedPrefs.getToken()
+            if (token == null) {
+                Log.e("AuthRepository", "No token found for API update")
+                return Result.failure(Exception("No token found for API update"))
+            }
+
+            val updateRequest = UpdateChefRequest(
+                contactPerson = chef.contactPerson,
+                email = chef.email,
+                phone = chef.phone,
+                location = chef.location,
+                avatar = chef.avatar,
+                cuisineType = chef.preferences[0]
+            )
+            val updatedChef = apiService.updateChefProfile("Bearer ${sharedPrefs.getToken()}", updateRequest).chef
+            //TODO:API return something that does not match with chef model
+            sharedPrefs.saveChef(chef)
+
+            val currentUser = sharedPrefs.getUser()
+            currentUser?.let { user ->
+                val updatedUser = user.copy(
+                    name = chef.name,
+                    email = chef.email
+                )
+                sharedPrefs.saveUser(updatedUser)
+            }
+
+            if (AppConfig.ENABLE_LOGGING)
+                Log.d("AuthRepository", "User updated via API: ${ sharedPrefs.getUser()?.name}")
+            Result.success(updatedChef)
+
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error in API updateUser", e)
+            Result.failure(Exception("Error in API updateUser"))
+        }
+    }*/
+
 }
 
 
