@@ -2,9 +2,13 @@ package gourmetgo.client.data.remote
 
 import gourmetgo.client.data.models.Chef
 import gourmetgo.client.data.models.Client
+import gourmetgo.client.data.models.Experience
+import gourmetgo.client.data.models.dtos.BookingRequest
+import gourmetgo.client.data.models.dtos.BookingResponse
 import gourmetgo.client.data.models.dtos.LoginRequest
 import gourmetgo.client.data.models.dtos.LoginResponse
 import gourmetgo.client.data.models.dtos.ExperiencesResponse
+import gourmetgo.client.data.models.dtos.MyBookingsResponse
 import gourmetgo.client.data.models.dtos.UpdateChefRequest
 import gourmetgo.client.data.models.dtos.UpdateChefResponse
 import gourmetgo.client.data.models.dtos.UpdateClientRequest
@@ -49,4 +53,18 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: UpdateChefRequest
     ): UpdateChefResponse
+
+    @POST("bookings")
+    suspend fun createBooking(
+        @Header("Authorization") token: String,
+        @Body request: BookingRequest
+    ): BookingResponse
+
+    @GET("bookings/my")
+    suspend fun getMyBookings(
+        @Header("Authorization") token: String
+    ): MyBookingsResponse
+
+    @GET("experiences/{id}")
+    suspend fun getExperienceById(@Path("id") id: String): Experience
 }

@@ -72,17 +72,16 @@ exports.createBooking = async (req, res) => {
     await experience.save();
 
 
-    // Generar PDF temporal
-    const pdfPath = path.join(__dirname, '..', 'extra', 'mail', `qr-${booking._id}.pdf`);
-    await createBookingPDF({
+    // Generar PDF en memoria (Buffer)
+    const pdfBuffer = await createBookingPDF({
       name,
       experienceTitle: experience.title,
       date: experience.date.toLocaleString(),
       people,
       qrCodes
-    }, pdfPath);
+    });
 
-    // Enviar correo con PDF adjunto
+    // Enviar correo con PDF adjunto (Buffer)
     await mailer.sendMailTemplate(
       email,
       'Confirmación de reservación',
@@ -99,13 +98,10 @@ exports.createBooking = async (req, res) => {
       [
         {
           filename: 'entradas.pdf',
-          path: pdfPath
+          content: pdfBuffer
         }
       ]
     );
-
-    // Elimina el PDF temporal después de enviar
-    fs.unlink(pdfPath, () => {});
 
     res.status(201).json({ message: 'Reservación realizada exitosamente.', booking });
   } catch (err) {
@@ -203,5 +199,23 @@ exports.getChefBookings = async (req, res) => {
     res.json(bookings);
   } catch (err) {
     res.status(500).json({ message: 'Error al obtener las reservaciones del chef.', error: err.message });
+  }
+};
+
+
+exports.getExperienceBookings = async (req, res) => {
+  try {
+    const experienceId = req.params.id;
+    const bookings = await Booking.find({ experience: experienceId })
+      .populate('user', 'name email avatar')
+      .populate('experience', 'title date remainingCapacity');
+      
+    if (!bookings || bookings.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron reservaciones para esta experiencia.' });
+    }
+
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ message: 'Error al obtener las reservaciones de la experiencia.', error: err.message });
   }
 };

@@ -18,4 +18,7 @@ router.put('/:id/cancel', auth, bookingController.cancelBooking);
 // Reservas de mis experiencias (chef)
 router.get('/chefs/:id/bookings', auth, bookingController.getChefBookings);
 
+// Reservas de una experiencia específica
+router.get('/experiences/:id/bookings', auth, bookingController.getExperienceBookings);
+
 module.exports = router;

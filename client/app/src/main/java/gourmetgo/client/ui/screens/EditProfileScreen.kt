@@ -1,4 +1,3 @@
-
 package gourmetgo.client.ui.screens
 
 import android.widget.Toast
@@ -53,7 +52,9 @@ fun EditProfileScreen(
 
     var contactPerson by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
-    var cuisineType by remember { mutableStateOf("") }
+
+    // Cambiado: ahora usamos una lista de tipos de cocina seleccionados
+    var selectedCuisineTypes by remember { mutableStateOf(emptyList<String>()) }
 
     var emailError by remember { mutableStateOf("") }
     var phoneError by remember { mutableStateOf("") }
@@ -74,8 +75,8 @@ fun EditProfileScreen(
             "La ubicación debe tener entre 5 y 100 caracteres"
         } else ""
 
-        cuisineTypeError = if (!EditProfileUtils.isValidCuisineType(cuisineType)) {
-            "El tipo de cocina debe tener entre 3 y 50 caracteres"
+        cuisineTypeError = if (selectedCuisineTypes.isEmpty()) {
+            "Debe seleccionar al menos un tipo de cocina"
         } else ""
 
         return contactPersonError.isEmpty() && locationError.isEmpty() && cuisineTypeError.isEmpty()
@@ -124,7 +125,8 @@ fun EditProfileScreen(
                     phoneDisplayValue = EditProfileUtils.formatPhoneForDisplay(chef.phone)
                     contactPerson = chef.contactPerson
                     location = chef.location
-                    cuisineType = chef.preferences.firstOrNull() ?: ""
+                    // Actualizado: cargamos las preferencias del chef como tipos de cocina
+                    selectedCuisineTypes = chef.preferences
                 }
             }
         }
@@ -381,24 +383,60 @@ fun EditProfileScreen(
                     }
                 )
 
-                ProfileTextField(
-                    label = "Tipo de Cocina",
-                    value = cuisineType,
-                    onValueChange = {
-                        cuisineType = it
-                        cuisineTypeError = ""
-                    },
-                    placeholder = "Ej: Italiana, Asiática, Fusión",
-                    isError = cuisineTypeError.isNotEmpty(),
-                    errorMessage = cuisineTypeError,
-                    keyboardType = KeyboardType.Text,
-                    focusManager = focusManager,
-                    onFocusLost = {
-                        if (!EditProfileUtils.isValidCuisineType(cuisineType)) {
-                            cuisineTypeError = "El tipo de cocina debe tener entre 3 y 50 caracteres"
+                Text(
+                    text = "Tipos de Cocina *",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    availablePreferences.chunked(3).forEach { row ->
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            row.forEach { cuisineType ->
+                                FilterChip(
+                                    onClick = {
+                                        selectedCuisineTypes = if (selectedCuisineTypes.contains(cuisineType)) {
+                                            selectedCuisineTypes - cuisineType
+                                        } else {
+                                            selectedCuisineTypes + cuisineType
+                                        }
+                                        cuisineTypeError = ""
+                                    },
+                                    label = {
+                                        Text(
+                                            text = cuisineType,
+                                            fontSize = 12.sp
+                                        )
+                                    },
+                                    selected = selectedCuisineTypes.contains(cuisineType),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
-                )
+                }
+
+                if (cuisineTypeError.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = cuisineTypeError,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -423,7 +461,7 @@ fun EditProfileScreen(
                                     phone = EditProfileUtils.phoneToApiFormat(rawPhoneInput),
                                     contactPerson = contactPerson.trim(),
                                     location = location.trim(),
-                                    cuisineType = cuisineType.trim()
+                                    cuisineTypes = selectedCuisineTypes
                                 )
                             }
                         }

@@ -1,5 +1,4 @@
 const PDFDocument = require('pdfkit');
-const fs = require('fs');
 
 /**
  * Crea un PDF de confirmación de reservación con los QR.
@@ -9,14 +8,17 @@ const fs = require('fs');
  * @param {string} data.date - Fecha del evento.
  * @param {number} data.people - Cantidad de personas.
  * @param {string[]} data.qrCodes - Array de rutas de imagen o buffers/base64 de QR.
- * @param {string} outputPath - Ruta donde guardar el PDF temporalmente.
- * @returns {Promise<string>} - Resolución con la ruta del PDF generado.
+ * @returns {Promise<Buffer>} - Resolución con el buffer del PDF generado.
  */
-function createBookingPDF({ name, experienceTitle, date, people, qrCodes }, outputPath) {
+async function createBookingPDF({ name, experienceTitle, date, people, qrCodes }) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 40 });
-    const stream = fs.createWriteStream(outputPath);
-    doc.pipe(stream);
+    const buffers = [];
+    doc.on('data', buffers.push.bind(buffers));
+    doc.on('end', () => {
+      const pdfBuffer = Buffer.concat(buffers);
+      resolve(pdfBuffer);
+    });
 
     // Logo (opcional)
     // doc.image(path.join(__dirname, 'logo.png'), doc.page.width - 120, 20, { width: 80 });
@@ -87,8 +89,6 @@ function createBookingPDF({ name, experienceTitle, date, people, qrCodes }, outp
       .text('GourmetGo © ' + new Date().getFullYear(), 0, doc.page.height - 50, { align: 'center' });
 
     doc.end();
-    stream.on('finish', () => resolve(outputPath));
-    stream.on('error', reject);
   });
 }
 
