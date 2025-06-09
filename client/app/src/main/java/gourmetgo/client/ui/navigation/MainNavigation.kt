@@ -49,7 +49,7 @@ fun MainNavigation(
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
-                    navController.navigate("book_experience/683dcc06c5e5e50561e5933b") {
+                    navController.navigate("book_experience/6845e25390da68a160e7166d") {
                         popUpTo("login") { inclusive = true } // borra login del back stack
                     }
                 }
