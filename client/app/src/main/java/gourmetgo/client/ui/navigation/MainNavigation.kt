@@ -22,6 +22,12 @@ import gourmetgo.client.viewmodel.factories.ProfileViewModelFactory
 import gourmetgo.client.ui.screens.BookExperienceScreen
 import gourmetgo.client.viewmodel.BookingViewModel
 import gourmetgo.client.viewmodel.factories.BookingViewModelFactory
+import gourmetgo.client.viewmodel.MyExperiencesChefViewModel
+import gourmetgo.client.viewmodel.factories.MyExperiencesChefViewModelFactory
+import gourmetgo.client.viewmodel.ExperienceDetailsViewModel
+import gourmetgo.client.viewmodel.factories.ExperienceDetailsViewModelFactory
+import gourmetgo.client.ui.screens.MyExperiencesChefScreen
+import gourmetgo.client.ui.screens.ExperienceDetailsScreen
 
 @Composable
 fun MainNavigation(
@@ -33,6 +39,10 @@ fun MainNavigation(
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(context))
     val experiencesViewModel: ExperiencesViewModel = viewModel(factory = ExperiencesViewModelFactory(context))
     val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(context))
+    val myExperiencesChefViewModel: MyExperiencesChefViewModel = viewModel(factory = MyExperiencesChefViewModelFactory(context))
+    val experienceDetailsViewModel: ExperienceDetailsViewModel = viewModel(
+        factory = ExperienceDetailsViewModelFactory(context, "")
+    )
 
     LaunchedEffect(Unit) {
         authViewModel.checkLoginStatus()
@@ -110,6 +120,29 @@ fun MainNavigation(
                         popUpTo("book_experience/{experienceId}") { inclusive = true }
                         launchSingleTop = true
                     }
+                }
+            )
+        }
+
+        composable("my_experiences_chef") {
+            MyExperiencesChefScreen(
+                viewModel = myExperiencesChefViewModel,
+                onNavigateToCreate = { /* ... */ },
+                onNavigateToExperienceDetails = { id ->
+                    navController.navigate("experiences/$id")
+                }
+            )
+        }
+
+        composable("experiences/{id}") { backStackEntry ->
+            val experienceId = backStackEntry.arguments?.getString("id") ?: return@composable
+            val detailsViewModel: ExperienceDetailsViewModel = viewModel(
+                factory = ExperienceDetailsViewModelFactory(context, experienceId)
+            )
+            ExperienceDetailsScreen(
+                viewModel = detailsViewModel,
+                onBack = {
+                    navController.popBackStack() 
                 }
             )
         }
