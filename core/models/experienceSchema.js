@@ -17,7 +17,7 @@ const ExperienceSchema = new mongoose.Schema({
     image: { type: String }, // URL de Cloudinary (opcional)
     text: { type: String }   // Opcional
   },
-  chef: { type: mongoose.Schema.Types.ObjectId, ref: 'ChefProfile', required: true },
+  chef: { type: mongoose.Schema.Types.ObjectId, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 
