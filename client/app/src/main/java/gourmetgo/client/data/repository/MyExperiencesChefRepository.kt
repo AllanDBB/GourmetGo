@@ -2,7 +2,6 @@ package gourmetgo.client.data.repository
 
 import android.util.Log
 import gourmetgo.client.data.remote.ApiService
-import gourmetgo.client.data.mockups.ExperiencesMockup
 import gourmetgo.client.data.models.Experience
 import gourmetgo.client.data.models.User
 import kotlinx.coroutines.delay
@@ -22,11 +21,8 @@ class MyExperiencesChefRepository(
             return Result.failure(Exception("Usuario no encontrado en SharedPrefs"))
         }
         return try {
-            if (AppConfig.USE_MOCKUP) {
-                getAllMyExperiencesWithMockup(id)
-            } else {
-                getAllMyExperiencesWithApi(id)
-            }
+            getAllMyExperiencesWithApi(id)
+        
         } catch (e: Exception) {
             Log.e("MyExperiencesChefRepository", "Error getting all experiences", e)
             Result.failure(Exception("Error connection: ${e.message}"))
@@ -42,17 +38,6 @@ class MyExperiencesChefRepository(
         } catch (e: Exception) {
             Log.e("MyExperiencesChefRepository", "Error in API getAllMyExperiences", e)
             Result.failure(Exception("Error connection to server"))
-        }
-    }
-
-    suspend fun getAllMyExperiencesWithMockup(id: String): Result<List<Experience>> {
-        return try {
-            val experiences = ExperiencesMockup.getExperiencesByChef(id)
-            Log.d("MyExperiencesChefRepository", "Loaded ${experiences.size} experiences from mockup for chef $id")
-            Result.success(experiences)
-        } catch (e: Exception) {
-            Log.e("MyExperiencesChefRepository", "Error in mockup getAllMyExperiences", e)
-            Result.failure(Exception("Error loading mockup data"))
         }
     }
 }

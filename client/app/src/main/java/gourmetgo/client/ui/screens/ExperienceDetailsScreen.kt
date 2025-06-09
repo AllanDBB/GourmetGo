@@ -193,7 +193,7 @@ fun ExperienceDetailsScreen(
                         }
                     }
                     // Menú
-                    if (experience.menu.image.isNotBlank() || experience.menu.text.isNotBlank()) {
+                    if ((experience.menu?.image?.isNotBlank() == true) || (experience.menu?.text?.isNotBlank() == true)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -201,22 +201,22 @@ fun ExperienceDetailsScreen(
                             horizontalArrangement = Arrangement.End,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (experience.menu.image.isNotBlank()) {
+                            if (experience.menu?.image?.isNotBlank() == true) {
                                 AsyncImage(
-                                    model = experience.menu.image,
+                                    model = experience.menu?.image,
                                     contentDescription = "Imagen menú",
-                                    modifier = Modifier.size(80.dp).padding(end = 8.dp).clickable { showImageDialog = experience.menu.image },
+                                    modifier = Modifier.size(80.dp).padding(end = 8.dp).clickable { showImageDialog = experience.menu?.image },
                                     contentScale = ContentScale.Crop
                                 )
                             }
-                            if (experience.menu.text.isNotBlank()) {
+                            if (experience.menu?.text?.isNotBlank() == true) {
                                 Column(
                                     modifier = Modifier
                                         .border(1.dp, MaterialTheme.colorScheme.secondary, MaterialTheme.shapes.small)
                                         .padding(8.dp)
                                 ) {
                                     Text("MENU", style = MaterialTheme.typography.labelLarge)
-                                    experience.menu.text.split("\n").forEach {
+                                    experience.menu?.text?.split("\n")?.forEach {
                                         Text(it, style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
@@ -231,9 +231,6 @@ fun ExperienceDetailsScreen(
                             .padding(top = 12.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Button(onClick = { /* TODO: Ver asistencia */ }) {
-                            Text("Ver asistencia")
-                        }
                         OutlinedButton(onClick = { /* TODO: Editar */ }) {
                             Text("Editar")
                         }

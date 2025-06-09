@@ -22,6 +22,12 @@ import gourmetgo.client.viewmodel.factories.ProfileViewModelFactory
 import gourmetgo.client.ui.screens.BookExperienceScreen
 import gourmetgo.client.viewmodel.BookingViewModel
 import gourmetgo.client.viewmodel.factories.BookingViewModelFactory
+import gourmetgo.client.viewmodel.MyExperiencesChefViewModel
+import gourmetgo.client.viewmodel.factories.MyExperiencesChefViewModelFactory
+import gourmetgo.client.viewmodel.ExperienceDetailsViewModel
+import gourmetgo.client.viewmodel.factories.ExperienceDetailsViewModelFactory
+import gourmetgo.client.ui.screens.MyExperiencesChefScreen
+import gourmetgo.client.ui.screens.ExperienceDetailsScreen
 
 @Composable
 fun MainNavigation(
