@@ -268,6 +268,9 @@ fun UpdateExperienceScreen(
                     val newCapacity = capacity.toIntOrNull() ?: 0
                     val newPrice = price.toDoubleOrNull() ?: 0.0
 
+                    
+                    val isLocationUrl = android.util.Patterns.WEB_URL.matcher(location).matches()
+
                     when {
                         selectedDate == null || selectedDate.isBefore(today) -> {
                             Toast.makeText(context, "La fecha no puede ser anterior a hoy", Toast.LENGTH_LONG).show()
@@ -280,6 +283,9 @@ fun UpdateExperienceScreen(
                         }
                         newPrice <= 0.0 -> {
                             Toast.makeText(context, "El precio debe ser mayor a cero", Toast.LENGTH_LONG).show()
+                        }
+                        !isLocationUrl -> {
+                            Toast.makeText(context, "La ubicación debe ser un link válido", Toast.LENGTH_LONG).show()
                         }
                         else -> {
                             viewModel.updateExperience(
@@ -318,16 +324,18 @@ fun UpdateExperienceScreen(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            OutlinedButton(
-                onClick = onDelete,
-                enabled = !uiState.isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(44.dp),
-                shape = MaterialTheme.shapes.medium,
-                colors = ButtonDefaults.outlinedButtonColors()
-            ) {
-                Text("Eliminar", color = MaterialTheme.colorScheme.error)
+            if (status != "Agotada") {
+                OutlinedButton(
+                    onClick = onDelete,
+                    enabled = !uiState.isLoading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.outlinedButtonColors()
+                ) {
+                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                }
             }
             Spacer(modifier = Modifier.height(24.dp))
         }
