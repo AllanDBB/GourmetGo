@@ -60,12 +60,15 @@ exports.updateExperience = async (req, res) => {
 
     if (location !== undefined) experience.location = location;
     if (date !== undefined) experience.date = date;
-    if (capacity !== undefined) experience.capacity = capacity;
     if (price !== undefined) experience.price = price; 
 
     // Actualizar remainingCapacity si se cambia la capacidad
-  
-    experience.remainingCapacity += (capacity- experience.capacity);
+    if (capacity !== undefined) {
+      const oldCapacity = experience.capacity;
+      const capacityDifference = capacity - oldCapacity;
+      experience.capacity = capacity;
+      experience.remainingCapacity = experience.remainingCapacity + capacityDifference;
+    }
 
     await experience.save();
 
@@ -83,6 +86,7 @@ exports.updateExperience = async (req, res) => {
         location: experience.location,
         capacity: experience.capacity,
         price: experience.price,
+        remainingCapacity: experience.remainingCapacity,
         year: new Date().getFullYear()
       }
     );
