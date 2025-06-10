@@ -9,7 +9,7 @@ import gourmetgo.client.data.remote.ApiService
 
 class UpdateExperienceRepository(
     private val apiService: ApiService,
-    private val sharedPrefs: SharedPrefsManager
+    private val sharedPrefs: SharedPrefsManager,
     private val idExperience: String 
 ) {
     suspend fun updateExperience(
@@ -54,13 +54,12 @@ class UpdateExperienceRepository(
     }
 
     suspend fun getCurrentExperience(idExperience: String): Experience {
-        
         return try {
             val response = apiService.getExperienceById(idExperience)
             if (AppConfig.ENABLE_LOGGING) {
                 Log.d("UpdateExperienceRepository", "Current experience loaded: ${response.title}")
             }
-    
+            response
         } catch (e: Exception) {
             if (AppConfig.ENABLE_LOGGING) {
                 Log.e("UpdateExperienceRepository", "Error loading current experience", e)

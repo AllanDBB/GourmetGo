@@ -64,9 +64,6 @@ interface ApiService {
         @Header("Authorization") token: String
     ): MyBookingsResponse
 
-    @GET("experiences/{id}")
-    suspend fun getExperienceById(@Path("id") id: String): Experience
-
     @PUT("experiences/{id}")
     suspend fun updateExperience(
         @Header("Authorization") token: String,

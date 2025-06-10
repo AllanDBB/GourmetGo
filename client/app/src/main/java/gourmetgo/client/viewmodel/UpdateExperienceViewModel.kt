@@ -16,7 +16,7 @@ import gourmetgo.client.enums.Preferences
 import gourmetgo.client.utils.ImageUploadUtils
 
 class UpdateExperienceViewModel(
-    private val updateExperienceRepository: UpdateExperienceRepository
+    private val updateExperienceRepository: UpdateExperienceRepository,
     private val idExperience: String,
 ) : ViewModel() {
 
@@ -43,10 +43,9 @@ class UpdateExperienceViewModel(
                     Log.d("UpdateExperienceViewModel", "Current experience loaded: ${currentExperience.title}")
                 }
             } catch (e: Exception) {
-                val userMessage = EditProfileUtils.mapErrorToUserMessage(e)
                 uiState = uiState.copy(
                     isLoading = false,
-                    error = userMessage
+                    error = e.message
                 )
                 if (AppConfig.ENABLE_LOGGING) {
                     Log.e("UpdateExperienceViewModel", "Error loading current experience", e)
@@ -55,4 +54,28 @@ class UpdateExperienceViewModel(
         }
     }
 
+    fun updateExperience(
+        date: String,
+        location: String,
+        status: String,
+        capacity: Int,
+        price: Double
+    ) {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true, error = null)
+            val result = updateExperienceRepository.updateExperience(
+                experienceId = idExperience,
+                location = location,
+                date = date,
+                status = status,
+                capacity = capacity,
+                price = price
+            )
+            result.onSuccess {
+                uiState = uiState.copy(isLoading = false, updateSuccess = true, experience = it)
+            }.onFailure {
+                uiState = uiState.copy(isLoading = false, error = it.message)
+            }
+        }
+    }
 }
