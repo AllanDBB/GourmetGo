@@ -1,5 +1,10 @@
 package gourmetgo.client.data.remote
 
+import gourmetgo.client.data.models.dtos.RegisterUserRequest
+import gourmetgo.client.data.models.dtos.RegisterUserResponse
+import gourmetgo.client.data.models.dtos.RegisterChefRequest
+import gourmetgo.client.data.responses.RegisterChefResponse
+
 import gourmetgo.client.data.models.Chef
 import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.Experience
@@ -25,6 +30,14 @@ interface ApiService {
 
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
+
+    @POST("auth/register")
+    suspend fun register(@Body request: RegisterUserRequest): RegisterUserResponse
+
+    @POST("auth/register-chef")
+    suspend fun registerChef(@Body request: RegisterChefRequest): RegisterChefResponse
+
+
 
     @GET("experiences")
     suspend fun getExperiences(): ExperiencesResponse

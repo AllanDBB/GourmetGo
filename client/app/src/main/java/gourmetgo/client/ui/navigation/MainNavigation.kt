@@ -29,6 +29,14 @@ import gourmetgo.client.viewmodel.factories.ExperienceDetailsViewModelFactory
 import gourmetgo.client.ui.screens.MyExperiencesChefScreen
 import gourmetgo.client.ui.screens.ExperienceDetailsScreen
 
+import gourmetgo.client.ui.screens.RegisterUserScreen
+import gourmetgo.client.ui.screens.RegisterChefScreen
+import gourmetgo.client.viewmodel.RegisterUserViewModel
+import gourmetgo.client.viewmodel.RegisterChefViewModel
+import gourmetgo.client.viewmodel.factories.RegisterUserViewModelFactory
+import gourmetgo.client.viewmodel.factories.RegisterChefViewModelFactory
+
+
 @Composable
 fun MainNavigation(
     modifier: Modifier = Modifier,
@@ -43,6 +51,15 @@ fun MainNavigation(
     val experienceDetailsViewModel: ExperienceDetailsViewModel = viewModel(
         factory = ExperienceDetailsViewModelFactory(context, "")
     )
+
+
+    val registerUserViewModel: RegisterUserViewModel = viewModel(
+        factory = RegisterUserViewModelFactory(context)
+    )
+    val registerChefViewModel: RegisterChefViewModel = viewModel(
+        factory = RegisterChefViewModelFactory(context)
+    )
+
 
     LaunchedEffect(Unit) {
         authViewModel.checkLoginStatus()
@@ -61,11 +78,58 @@ fun MainNavigation(
                 onLoginSuccess = {
                     navController.navigate("experiences") {
                         popUpTo("login") { inclusive = true }
-                        launchSingleTop = true
                     }
+                },
+                onNavigateToRegister = {
+                    navController.navigate("register")
                 }
             )
         }
+
+        composable("register") {
+            // Resetear el estado cuando se entra a la pantalla de registro
+            LaunchedEffect(Unit) {
+                registerUserViewModel.resetState()
+            }
+
+            RegisterUserScreen(
+                viewModel = registerUserViewModel,
+                onRegisterSuccess = {
+                    navController.navigate("login") {
+                        popUpTo("register") { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                },
+                onNavigateToRegisterChef = {
+                    navController.navigate("register-chef")
+                }
+            )
+        }
+
+        composable("register-chef") {
+            // Resetear el estado cuando se entra a la pantalla de registro chef
+            LaunchedEffect(Unit) {
+                registerChefViewModel.resetState()
+            }
+
+            RegisterChefScreen(
+                viewModel = registerChefViewModel,
+                onRegisterSuccess = {
+                    navController.navigate("login") {
+                        popUpTo("register-chef") { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+
+
+
 
         composable("experiences") {
             ExperiencesScreen(
@@ -89,6 +153,7 @@ fun MainNavigation(
                 }
             )
         }
+
 
         composable("edit_profile") {
             EditProfileScreen(

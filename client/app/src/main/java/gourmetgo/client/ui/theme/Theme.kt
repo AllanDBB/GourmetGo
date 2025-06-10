@@ -8,9 +8,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val GourmetGoPrimary = Color(0xFF0A7EA4)
-private val GourmetGoSecondary = Color(0xFF009688)
-private val GourmetGoTertiary = Color(0xFF4CAF50)
+private val GourmetGoPrimary = Color(0xFF388E3C) //verde
+private val GourmetGoSecondary = Color(0xFFD4A60D) //amarillo
+private val GourmetGoTertiary = Color(0xFF1976D2)// azul links
 
 private val DarkColorScheme = darkColorScheme(
     primary = GourmetGoPrimary,
@@ -36,7 +36,10 @@ private val LightColorScheme = lightColorScheme(
     onTertiary = Color.White,
     onBackground = Color(0xFF1C1B1F),
     onSurface = Color(0xFF1C1B1F),
-)
+
+
+
+    )
 
 @Composable
 fun AppTheme(
