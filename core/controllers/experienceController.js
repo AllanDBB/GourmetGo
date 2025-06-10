@@ -61,7 +61,11 @@ exports.updateExperience = async (req, res) => {
     if (location !== undefined) experience.location = location;
     if (date !== undefined) experience.date = date;
     if (capacity !== undefined) experience.capacity = capacity;
-    if (price !== undefined) experience.price = price;
+    if (price !== undefined) experience.price = price; 
+
+    // Actualizar remainingCapacity si se cambia la capacidad
+  
+    experience.remainingCapacity += (capacity- experience.capacity);
 
     await experience.save();
 
