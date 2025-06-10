@@ -275,6 +275,9 @@ fun UpdateExperienceScreen(
                         newCapacity < alreadyBooked -> {
                             Toast.makeText(context, "La capacidad no puede ser menor que las reservas ya hechas ($alreadyBooked)", Toast.LENGTH_LONG).show()
                         }
+                        newCapacity <= 0 -> {
+                            Toast.makeText(context, "La capacidad debe ser mayor a cero", Toast.LENGTH_LONG).show()
+                        }
                         newPrice <= 0.0 -> {
                             Toast.makeText(context, "El precio debe ser mayor a cero", Toast.LENGTH_LONG).show()
                         }
