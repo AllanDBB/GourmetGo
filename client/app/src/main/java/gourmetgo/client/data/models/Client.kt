@@ -7,6 +7,7 @@ data class Client(
     val email: String = "",
     val phone: String = "",
     val identification: String = "",
+    val password: String = "",
     val role:String="",
     val avatar:String?="",
     val preferences: List<String> = emptyList(),

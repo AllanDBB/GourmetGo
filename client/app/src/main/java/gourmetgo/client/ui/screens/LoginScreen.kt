@@ -25,15 +25,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gourmetgo.client.viewmodel.AuthViewModel
 import gourmetgo.client.ui.components.LoginHeader
-import gourmetgo.client.ui.components.TestUserInfoCard
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.foundation.clickable
+
 
 @Composable
 fun LoginScreen(
     viewModel: AuthViewModel,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onNavigateToRegister: () -> Unit = {}
+
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("juan@test.com") }
+    var password by remember { mutableStateOf("123456") }
     var passwordVisible by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
@@ -60,12 +64,25 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Text(
+            text = "Iniciar Sesión",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
         LoginHeader()
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
-            label = { Text("Correo electrónico") },
+            onValueChange = {
+                email = it
+                // Limpiar errores cuando el usuario escribe
+                if (uiState.emailError != null) {
+                    viewModel.clearFieldErrors()
+                }
+            },
+            label = { Text("Correo electrónico", color = MaterialTheme.colorScheme.secondary) },
             leadingIcon = {
                 Icon(Icons.Default.Email, contentDescription = "Email")
             },
@@ -74,18 +91,32 @@ fun LoginScreen(
                 imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
-                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                onNext = {
+                    // Validar al salir del campo
+                    viewModel.validateCredentials(email, password)
+                    focusManager.moveFocus(FocusDirection.Down)
+                }
             ),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            isError = uiState.emailError != null,
+            supportingText = uiState.emailError?.let {
+                { Text(text = it, color = MaterialTheme.colorScheme.error) }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
-            label = { Text("Contraseña") },
+            onValueChange = {
+                password = it
+                // Limpiar errores cuando el usuario escribe
+                if (uiState.passwordError != null) {
+                    viewModel.clearFieldErrors()
+                }
+            },
+            label = { Text("Contraseña", color = MaterialTheme.colorScheme.secondary) },
             leadingIcon = {
                 Icon(Icons.Default.Lock, contentDescription = "Password")
             },
@@ -108,24 +139,24 @@ fun LoginScreen(
             keyboardActions = KeyboardActions(
                 onDone = {
                     focusManager.clearFocus()
-                    if (email.isNotBlank() && password.isNotBlank()) {
-                        viewModel.login(email, password)
-                    }
+                    viewModel.login(email, password)
                 }
             ),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            isError = uiState.passwordError != null,
+            supportingText = uiState.passwordError?.let {
+                { Text(text = it, color = MaterialTheme.colorScheme.error) }
+            }
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
             onClick = {
-                if (email.isNotBlank() && password.isNotBlank()) {
-                    viewModel.login(email, password)
-                }
+                viewModel.login(email, password)
             },
-            enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank(),
+            enabled = !uiState.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
@@ -147,13 +178,41 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "¿Olvidaste tu contraseña?",
-            color = MaterialTheme.colorScheme.primary,
+            text = "¿No tienes una cuenta?",
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 14.sp
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "Regístrate acá",
+            color = MaterialTheme.colorScheme.tertiary,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable { onNavigateToRegister() }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "¿Olvidaste tu contraseña?",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 14.sp
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "Recuperar contraseña",
+            color = MaterialTheme.colorScheme.tertiary,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            textDecoration = TextDecoration.Underline,
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        TestUserInfoCard(modifier = Modifier.fillMaxWidth())
     }
 }
