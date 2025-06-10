@@ -48,10 +48,8 @@ exports.updateExperience = async (req, res) => {
     const experienceId = req.params.id;
     const { location, date, status, capacity, price } = req.body;
 
-    const experience = await Experience.findById(experienceId).populate({
-      path: 'chef',
-      populate: { path: 'user' }
-    });
+    const experience = await Experience.findById(experienceId);
+    
     if (!experience) return res.status(404).json({ message: 'Experiencia no encontrada.' });
 
     if (status && experience.status === 'Próximamente' && status === 'Activa') {
