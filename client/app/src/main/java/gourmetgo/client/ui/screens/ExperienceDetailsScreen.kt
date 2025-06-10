@@ -27,7 +27,8 @@ import androidx.compose.ui.window.Dialog
 @Composable
 fun ExperienceDetailsScreen(
     viewModel: ExperienceDetailsViewModel,
-    onBack: (() -> Unit)? = null
+    onBack: (() -> Unit)? = null,
+    onEdit: ((String) -> Unit)? = null
 ) {
     val uiState = viewModel.uiState
 
@@ -231,7 +232,7 @@ fun ExperienceDetailsScreen(
                             .padding(top = 12.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        OutlinedButton(onClick = { /* TODO: Editar */ }) {
+                        OutlinedButton(onClick = { onEdit?.invoke(experience._id) }) {
                             Text("Editar")
                         }
                     }
