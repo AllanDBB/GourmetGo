@@ -104,9 +104,16 @@ exports.registerChef = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    email = email.toLowerCase().trim();
-    const user = await User.findOne({ email });
     
+    // convert mail to lowercase:
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Por favor, proporciona un correo electrónico y una contraseña.' });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    const user = await User.findOne({ normalizedEmail });
+
     if (!user) return res.status(400).json({ message: 'Credenciales inválidas.' });
 
     const valid = await bcrypt.compare(password, user.password);
