@@ -110,8 +110,8 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Por favor, proporciona un correo electrónico y una contraseña.' });
     }
 
-    const normalizedEmail = email.toLowerCase();
-
+    const normalizedEmail = email.toLowerCase().trim();
+    console.log(normalizedEmail)
     const user = await User.findOne({ normalizedEmail });
 
     if (!user) return res.status(400).json({ message: 'Credenciales inválidas.' });
