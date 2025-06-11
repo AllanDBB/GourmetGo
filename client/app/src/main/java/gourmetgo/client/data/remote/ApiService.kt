@@ -18,7 +18,7 @@ import gourmetgo.client.data.models.dtos.UpdateChefRequest
 import gourmetgo.client.data.models.dtos.UpdateChefResponse
 import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.models.dtos.UpdateUserResponse
-import gourmetgo.client.data.models.dtos.SpecificExperienceResponse
+import gourmetgo.client.data.models.dtos.UpdateExperienceRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -77,4 +77,10 @@ interface ApiService {
         @Header("Authorization") token: String
     ): MyBookingsResponse
 
+    @PUT("experiences/{id}")
+    suspend fun updateExperience(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body request: UpdateExperienceRequest
+    ): Experience
 }

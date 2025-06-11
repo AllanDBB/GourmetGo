@@ -28,6 +28,10 @@ import gourmetgo.client.viewmodel.ExperienceDetailsViewModel
 import gourmetgo.client.viewmodel.factories.ExperienceDetailsViewModelFactory
 import gourmetgo.client.ui.screens.MyExperiencesChefScreen
 import gourmetgo.client.ui.screens.ExperienceDetailsScreen
+import gourmetgo.client.ui.screens.UpdateExperienceScreen
+import gourmetgo.client.viewmodel.factories.UpdateExperienceViewModelFactory
+import gourmetgo.client.viewmodel.UpdateExperienceViewModel
+
 
 import gourmetgo.client.ui.screens.RegisterUserScreen
 import gourmetgo.client.ui.screens.RegisterChefScreen
@@ -50,6 +54,9 @@ fun MainNavigation(
     val myExperiencesChefViewModel: MyExperiencesChefViewModel = viewModel(factory = MyExperiencesChefViewModelFactory(context))
     val experienceDetailsViewModel: ExperienceDetailsViewModel = viewModel(
         factory = ExperienceDetailsViewModelFactory(context, "")
+    )
+    val updateExperienceViewModel: UpdateExperienceViewModel = viewModel(
+        factory = UpdateExperienceViewModelFactory(context, "")
     )
 
 
@@ -208,6 +215,31 @@ fun MainNavigation(
                 viewModel = detailsViewModel,
                 onBack = {
                     navController.popBackStack() 
+                },
+                onEdit = { id ->
+                    navController.navigate("edit_experience/$id")
+                }
+            )
+        }
+
+        composable("edit_experience/{id}") { backStackEntry ->
+            val experienceId = backStackEntry.arguments?.getString("id") ?: return@composable
+            val updateExperienceViewModel: UpdateExperienceViewModel = viewModel(
+                factory = UpdateExperienceViewModelFactory(context, experienceId)
+            )
+            UpdateExperienceScreen(
+                viewModel = updateExperienceViewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onDelete = {
+                    // Handle delete action
+                },
+                onUpdateSuccess = {
+                    navController.navigate("my_experiences_chef") {
+                        popUpTo("edit_experience/{id}") { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
