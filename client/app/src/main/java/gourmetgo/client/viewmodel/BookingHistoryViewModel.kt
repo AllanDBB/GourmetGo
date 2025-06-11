@@ -61,49 +61,45 @@ class BookingHistoryViewModel(
         }
     }
 
+
     fun cancelBooking(bookingId: String) {
         viewModelScope.launch {
             try {
                 uiState = uiState.copy(isCancelling = true, error = null)
 
-                // Find the booking to cancel
-                val bookingToCancel = uiState.bookings.find { it._id == bookingId }
-                if (bookingToCancel == null) {
-                    uiState = uiState.copy(
-                        isCancelling = false,
-                        error = "Reserva no encontrada"
-                    )
-                    return@launch
-                }
+                // Llamar al repositorio para cancelar la reserva
+                repository.cancelBooking(bookingId)
+                    .onSuccess {
+                        // Actualizar la lista local cambiando el estado de la reserva
+                        val updatedBookings = uiState.bookings.map { booking ->
+                            if (booking._id == bookingId) {
+                                booking.copy(status = "cancelled")
+                            } else {
+                                booking
+                            }
+                        }
 
-                if (bookingToCancel.status != "pending") {
-                    uiState = uiState.copy(
-                        isCancelling = false,
-                        error = "Solo se pueden cancelar reservas pendientes"
-                    )
-                    return@launch
-                }
+                        uiState = uiState.copy(
+                            isCancelling = false,
+                            bookings = updatedBookings,
+                            cancelSuccess = true,
+                            error = null
+                        )
 
-                // Call the repository to cancel booking (this would need to be added to BookingRepository)
-                // For now, we'll simulate the cancellation by updating the local state
-                val updatedBookings = uiState.bookings.map { booking ->
-                    if (booking._id == bookingId) {
-                        booking.copy(status = "cancelled")
-                    } else {
-                        booking
+                        if (AppConfig.ENABLE_LOGGING) {
+                            Log.d("BookingHistoryViewModel", "Booking cancelled successfully: $bookingId")
+                        }
                     }
-                }
-
-                uiState = uiState.copy(
-                    isCancelling = false,
-                    bookings = updatedBookings,
-                    cancelSuccess = true,
-                    error = null
-                )
-
-                if (AppConfig.ENABLE_LOGGING) {
-                    Log.d("BookingHistoryViewModel", "Booking cancelled successfully: $bookingId")
-                }
+                    .onFailure { error ->
+                        val userMessage = mapErrorToUserMessage(error)
+                        uiState = uiState.copy(
+                            isCancelling = false,
+                            error = userMessage
+                        )
+                        if (AppConfig.ENABLE_LOGGING) {
+                            Log.e("BookingHistoryViewModel", "Error cancelling booking", error)
+                        }
+                    }
 
             } catch (e: Exception) {
                 val userMessage = mapErrorToUserMessage(e)
@@ -112,7 +108,7 @@ class BookingHistoryViewModel(
                     error = userMessage
                 )
                 if (AppConfig.ENABLE_LOGGING) {
-                    Log.e("BookingHistoryViewModel", "Error cancelling booking", e)
+                    Log.e("BookingHistoryViewModel", "Unexpected error in cancelBooking", e)
                 }
             }
         }

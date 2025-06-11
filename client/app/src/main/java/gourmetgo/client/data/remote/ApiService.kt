@@ -6,6 +6,7 @@ import gourmetgo.client.data.models.Experience
 import gourmetgo.client.data.models.dtos.BookingRequest
 import gourmetgo.client.data.models.dtos.BookingResponse
 import gourmetgo.client.data.models.dtos.BookingSummary
+import gourmetgo.client.data.models.dtos.CancelBookingResponse
 import gourmetgo.client.data.models.dtos.LoginRequest
 import gourmetgo.client.data.models.dtos.LoginResponse
 import gourmetgo.client.data.models.dtos.ExperiencesResponse
@@ -56,6 +57,12 @@ interface ApiService {
     suspend fun getMyBookings(
         @Header("Authorization") token: String
     ): List<BookingSummary>
+
+    @PUT("bookings/{id}/cancel")
+    suspend fun cancelBooking(
+        @Header("Authorization") token: String,
+        @Path("id") bookingId: String
+    ): CancelBookingResponse
 
     @GET("experiences/{id}")
     suspend fun getExperienceById(@Path("id") id: String): Experience

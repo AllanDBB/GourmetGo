@@ -23,6 +23,7 @@ import gourmetgo.client.ui.components.BookingHistoryCard
 
 
 @SuppressLint("DefaultLocale")
+
 @Composable
 fun BookingHistoryScreen(
     viewModel: BookingHistoryViewModel,
@@ -39,6 +40,13 @@ fun BookingHistoryScreen(
         uiState.error?.let { error ->
             Toast.makeText(context, error, Toast.LENGTH_LONG).show()
             viewModel.clearError()
+        }
+    }
+
+    LaunchedEffect(uiState.cancelSuccess) {
+        if (uiState.cancelSuccess) {
+            Toast.makeText(context, "Reserva cancelada exitosamente", Toast.LENGTH_SHORT).show()
+            viewModel.clearCancelSuccess()
         }
     }
 
@@ -67,7 +75,20 @@ fun BookingHistoryScreen(
             }
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
+        if (uiState.isCancelling) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Cancelando reserva...")
+                }
+            }
+        } else if (uiState.isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -127,4 +148,3 @@ fun BookingHistoryScreen(
         }
     }
 }
-

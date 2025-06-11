@@ -68,7 +68,6 @@ class BookingRepository(
                 return Result.failure(Exception("User not authenticated"))
             }
 
-            // Ahora recibimos directamente el array de bookings
             val bookings = apiService.getMyBookings("Bearer $token")
 
             if (AppConfig.ENABLE_LOGGING) {
@@ -100,6 +99,32 @@ class BookingRepository(
                 Log.e("BookingRepository", "Error getting experience", e)
             }
             Result.failure(Exception("Error getting experience: ${e.message}"))
+        }
+    }
+
+    suspend fun cancelBooking(bookingId: String): Result<String> {
+        return try {
+            val token = sharedPrefs.getToken()
+            if (token == null) {
+                if (AppConfig.ENABLE_LOGGING) {
+                    Log.e("BookingRepository", "No token found")
+                }
+                return Result.failure(Exception("User not authenticated"))
+            }
+
+            apiService.cancelBooking("Bearer $token", bookingId)
+
+            if (AppConfig.ENABLE_LOGGING) {
+                Log.d("BookingRepository", "Booking cancelled successfully: $bookingId")
+            }
+
+            Result.success("Reserva cancelada exitosamente")
+
+        } catch (e: Exception) {
+            if (AppConfig.ENABLE_LOGGING) {
+                Log.e("BookingRepository", "Error cancelling booking", e)
+            }
+            Result.failure(Exception("Error cancelando reserva: ${e.message}"))
         }
     }
 }

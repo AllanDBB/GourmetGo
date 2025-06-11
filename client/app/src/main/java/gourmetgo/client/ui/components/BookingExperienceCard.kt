@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -24,23 +25,38 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gourmetgo.client.data.models.dtos.BookingSummary
 import gourmetgo.client.utils.BookingHistoryUtils
 
+// BookingExperienceCard.kt - Mejorar para mostrar estado de cancelación
+
 @Composable
 fun BookingHistoryCard(
     booking: BookingSummary,
-    onCancelClick: () -> Unit
+    onCancelClick: () -> Unit,
+    isLoading: Boolean = false // Agregar parámetro para estado de carga
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (booking.status == "cancelled") {
+                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+        )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(16.dp)
+                .then(
+                    if (isLoading) Modifier.alpha(0.6f) else Modifier
+                )
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -163,19 +179,37 @@ fun BookingHistoryCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            if (BookingHistoryUtils.canCancelBooking(booking)) {
+            if (BookingHistoryUtils.canCancelBooking(booking) && !isLoading) {
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedButton(
                     onClick = onCancelClick,
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = !isLoading,
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text(
-                        text = "Cancelar Reserva",
-                        fontSize = 14.sp
-                    )
+                    if (isLoading) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = MaterialTheme.colorScheme.error,
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Cancelando...",
+                                fontSize = 14.sp
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "Cancelar Reserva",
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }
