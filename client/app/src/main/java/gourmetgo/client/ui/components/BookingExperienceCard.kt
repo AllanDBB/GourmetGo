@@ -27,12 +27,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import gourmetgo.client.data.models.Booking
+import gourmetgo.client.data.models.dtos.BookingSummary
 import gourmetgo.client.utils.BookingHistoryUtils
 
 @Composable
 fun BookingHistoryCard(
-    booking: Booking,
+    booking: BookingSummary,
     onCancelClick: () -> Unit
 ) {
     Card(
@@ -49,7 +49,7 @@ fun BookingHistoryCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = booking.experience,
+                        text = booking.experience.title,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary

@@ -1,6 +1,6 @@
 package gourmetgo.client.utils
 
-import gourmetgo.client.data.models.Booking
+import gourmetgo.client.data.models.dtos.BookingSummary
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -71,7 +71,7 @@ object BookingHistoryUtils {
         }
     }
 
-    fun canCancelBooking(booking: Booking): Boolean {
+    fun canCancelBooking(booking: BookingSummary): Boolean {
         return booking.status == "pending"
     }
 
