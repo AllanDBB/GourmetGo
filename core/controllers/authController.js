@@ -110,10 +110,8 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Por favor, proporciona un correo electrónico y una contraseña.' });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-    console.log(normalizedEmail)
-    const user = await User.findOne({ normalizedEmail });
-
+    const normalizedEmail = email.toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) return res.status(400).json({ message: 'Credenciales inválidas.' });
 
     const valid = await bcrypt.compare(password, user.password);
