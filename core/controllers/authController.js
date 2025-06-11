@@ -104,7 +104,9 @@ exports.registerChef = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    email = email.toLowerCase().trim();
     const user = await User.findOne({ email });
+    
     if (!user) return res.status(400).json({ message: 'Credenciales inválidas.' });
 
     const valid = await bcrypt.compare(password, user.password);
