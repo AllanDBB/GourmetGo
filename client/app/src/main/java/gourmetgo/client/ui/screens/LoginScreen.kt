@@ -33,7 +33,7 @@ import androidx.compose.foundation.clickable
 fun LoginScreen(
     viewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit = {}
+    onNavigateToRegister: () -> Unit = {},
     onNavigateToChangePassword: () -> Unit = {}
 
 ) {

@@ -40,6 +40,9 @@ import gourmetgo.client.viewmodel.RegisterChefViewModel
 import gourmetgo.client.viewmodel.factories.RegisterUserViewModelFactory
 import gourmetgo.client.viewmodel.factories.RegisterChefViewModelFactory
 
+import gourmetgo.client.ui.screens.ChangePasswordScreen
+import gourmetgo.client.viewmodel.ChangePasswordViewModel
+import gourmetgo.client.viewmodel.factories.ChangePasswordViewModelFactory
 
 @Composable
 fun MainNavigation(
@@ -56,7 +59,7 @@ fun MainNavigation(
     val updateExperienceViewModel: UpdateExperienceViewModel = viewModel(factory = UpdateExperienceViewModelFactory(context, ""))
     val registerUserViewModel: RegisterUserViewModel = viewModel(factory = RegisterUserViewModelFactory(context))
     val registerChefViewModel: RegisterChefViewModel = viewModel(factory = RegisterChefViewModelFactory(context))
-
+    val changePasswordViewModel: ChangePasswordViewModel = viewModel(factory = ChangePasswordViewModelFactory(context))
 
     LaunchedEffect(Unit) {
         authViewModel.checkLoginStatus()
@@ -79,13 +82,16 @@ fun MainNavigation(
                 },
                 onNavigateToRegister = {
                     navController.navigate("register")
+                },
+                onNavigateToChangePassword = {
+                    navController.navigate("change_password")
                 }
             )
         }
 
         composable("change_password"){
             ChangePasswordScreen(
-                viewmodel=changePasswordViewModel,
+                viewModel=changePasswordViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
