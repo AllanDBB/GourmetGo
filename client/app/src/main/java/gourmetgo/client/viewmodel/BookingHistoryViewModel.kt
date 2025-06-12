@@ -1,5 +1,8 @@
 package gourmetgo.client.viewmodel
 
+import android.content.Context
+import android.graphics.pdf.PdfDocument
+import android.os.Environment
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -7,10 +10,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gourmetgo.client.AppConfig
+import gourmetgo.client.data.models.dtos.BookingSummary
 import gourmetgo.client.data.repository.BookingRepository
 import gourmetgo.client.viewmodel.statesUi.BookingHistoryUiState
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import java.io.File
+import java.io.FileOutputStream
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -153,5 +159,50 @@ class BookingHistoryViewModel(
 
     fun clearCancelSuccess() {
         uiState = uiState.copy(cancelSuccess = false)
+    }
+
+    fun downloadBookingPDF(context: Context, booking: BookingSummary, onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val pdfDocument = PdfDocument()
+                val pageInfo = PdfDocument.PageInfo.Builder(300, 400, 1).create()
+                val page = pdfDocument.startPage(pageInfo)
+                val canvas = page.canvas
+                val paint = android.graphics.Paint()
+                paint.textSize = 14f
+                var y = 30
+
+                canvas.drawText("Comprobante de Reserva", 60f, y.toFloat(), paint)
+                y += 30
+                canvas.drawText("Nombre: ${booking.name}", 10f, y.toFloat(), paint)
+                y += 25
+                canvas.drawText("Experiencia: ${booking.experience.title}", 10f, y.toFloat(), paint)
+                y += 25
+                canvas.drawText("Fecha: ${booking.experience.date}", 10f, y.toFloat(), paint)
+                y += 25
+                canvas.drawText("Lugar: ${booking.experience.location}", 10f, y.toFloat(), paint)
+                y += 25
+                canvas.drawText("Estado: ${booking.status}", 10f, y.toFloat(), paint)
+                y += 25
+                canvas.drawText("Código: ${booking.bookingCode}", 10f, y.toFloat(), paint)
+                y += 25
+                canvas.drawText("Personas: ${booking.people}", 10f, y.toFloat(), paint)
+                y += 25
+                canvas.drawText("Método de pago: ${booking.paymentMethod}", 10f, y.toFloat(), paint)
+
+                pdfDocument.finishPage(page)
+
+                val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+                if (dir != null && !dir.exists()) dir.mkdirs()
+                val file = File(dir, "Comprobante_${booking.bookingCode}.pdf")
+                val outputStream = FileOutputStream(file)
+                pdfDocument.writeTo(outputStream)
+                pdfDocument.close()
+                outputStream.close()
+                onResult(true, "PDF guardado en: ${file.absolutePath}")
+            } catch (e: Exception) {
+                onResult(false, "Error al generar PDF: ${e.message}")
+            }
+        }
     }
 }

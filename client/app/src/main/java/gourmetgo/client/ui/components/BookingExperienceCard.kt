@@ -178,6 +178,22 @@ fun BookingHistoryCard(
                     )
                 }
             }
+
+            if (booking.status == "attended") {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = {}, // No hace nada
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = "Calificar",
+                        fontSize = 14.sp
+                    )
+                }
+            }
         }
     }
 }
