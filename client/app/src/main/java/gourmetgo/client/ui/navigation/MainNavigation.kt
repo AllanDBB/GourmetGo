@@ -52,20 +52,10 @@ fun MainNavigation(
     val experiencesViewModel: ExperiencesViewModel = viewModel(factory = ExperiencesViewModelFactory(context))
     val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(context))
     val myExperiencesChefViewModel: MyExperiencesChefViewModel = viewModel(factory = MyExperiencesChefViewModelFactory(context))
-    val experienceDetailsViewModel: ExperienceDetailsViewModel = viewModel(
-        factory = ExperienceDetailsViewModelFactory(context, "")
-    )
-    val updateExperienceViewModel: UpdateExperienceViewModel = viewModel(
-        factory = UpdateExperienceViewModelFactory(context, "")
-    )
-
-
-    val registerUserViewModel: RegisterUserViewModel = viewModel(
-        factory = RegisterUserViewModelFactory(context)
-    )
-    val registerChefViewModel: RegisterChefViewModel = viewModel(
-        factory = RegisterChefViewModelFactory(context)
-    )
+    val experienceDetailsViewModel: ExperienceDetailsViewModel = viewModel(factory = ExperienceDetailsViewModelFactory(context, ""))
+    val updateExperienceViewModel: UpdateExperienceViewModel = viewModel(factory = UpdateExperienceViewModelFactory(context, ""))
+    val registerUserViewModel: RegisterUserViewModel = viewModel(factory = RegisterUserViewModelFactory(context))
+    val registerChefViewModel: RegisterChefViewModel = viewModel(factory = RegisterChefViewModelFactory(context))
 
 
     LaunchedEffect(Unit) {
@@ -92,6 +82,16 @@ fun MainNavigation(
                 }
             )
         }
+
+        composable("change_password"){
+            ChangePasswordScreen(
+                viewmodel=changePasswordViewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+            )
+        }
+
 
         composable("register") {
             // Resetear el estado cuando se entra a la pantalla de registro

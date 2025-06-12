@@ -5,6 +5,9 @@ import gourmetgo.client.data.models.dtos.RegisterUserResponse
 import gourmetgo.client.data.models.dtos.RegisterChefRequest
 import gourmetgo.client.data.responses.RegisterChefResponse
 
+import gourmetgo.client.data.models.dtos.ChangePasswordRequest
+import gourmetgo.client.data.models.dtos.ChangePasswordResponse
+
 import gourmetgo.client.data.models.Chef
 import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.Experience
@@ -83,4 +86,11 @@ interface ApiService {
         @Path("id") id: String,
         @Body request: UpdateExperienceRequest
     ): Experience
+
+    @PUT("users/change-password")
+    suspend fun changePassword(
+        @Header("Authorization") token: String,
+        @Body request: ChangePasswordRequest
+    ): ChangePasswordResponse
+
 }

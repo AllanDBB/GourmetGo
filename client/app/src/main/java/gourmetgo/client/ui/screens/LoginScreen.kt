@@ -34,6 +34,7 @@ fun LoginScreen(
     viewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit = {}
+    onNavigateToChangePassword: () -> Unit = {}
 
 ) {
     var email by remember { mutableStateOf("") }
@@ -210,6 +211,7 @@ fun LoginScreen(
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable { onNavigateToChangePassword() }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
