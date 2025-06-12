@@ -61,7 +61,7 @@ exports.createBooking = async (req, res) => {
       phone,
       termsAccepted,
       paymentMethod,
-      status: 'pending',
+      status: 'confirmed',
       bookingCode,
       qrCodes
     });
