@@ -86,7 +86,7 @@ fun MainNavigation(
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
-                    navController.navigate("my_experiences_chef") {
+                    navController.navigate("experiences") {
                         popUpTo("login") { inclusive = true }
                     }
                 },

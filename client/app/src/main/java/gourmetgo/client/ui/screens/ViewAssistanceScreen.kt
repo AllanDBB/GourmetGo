@@ -1,5 +1,7 @@
 package gourmetgo.client.ui.screens
 
+import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +20,10 @@ import gourmetgo.client.data.models.dtos.AssistanceResponse
 import gourmetgo.client.viewmodel.statesUi.ViewAssistanceUiState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.ui.platform.LocalContext
+import gourmetgo.client.utils.ViewAssistanceExportUtils
+import androidx.core.content.FileProvider
+import java.io.File
 
 @Composable
 fun ViewAssistanceScreen(
@@ -28,6 +34,7 @@ fun ViewAssistanceScreen(
 ) {
     val uiState by viewModel::uiState
     val experience = uiState.experience
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -41,7 +48,7 @@ fun ViewAssistanceScreen(
         ) {
             IconButton(onClick = onBack) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowBack, // Usa la versión recomendada si tienes AutoMirrored
+                    imageVector = Icons.Filled.ArrowBack, 
                     contentDescription = "Regresar"
                 )
             }
@@ -63,13 +70,13 @@ fun ViewAssistanceScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = exp.title, // title es String
+                    text = exp.title,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Format date to a more readable format
+                
                 val formattedDate = try {
                     val inputFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.getDefault())
                     inputFormat.timeZone = java.util.TimeZone.getTimeZone("UTC")
@@ -109,9 +116,13 @@ fun ViewAssistanceScreen(
             )
         } else {
             val bookingsList = uiState.bookings ?: emptyList()
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(bookingsList) { booking ->
-                    BookingInfoCard(booking = booking, modifier = Modifier.padding(vertical = 4.dp))
+            Box(modifier = Modifier.weight(1f)) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(bookingsList) { booking ->
+                        BookingInfoCard(booking = booking, modifier = Modifier.padding(vertical = 4.dp))
+                    }
                 }
             }
         }
@@ -120,12 +131,28 @@ fun ViewAssistanceScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(onClick = onDownloadPdf, modifier = Modifier.weight(1f)) {
-                Text("Descargar PDF")
+            Button(onClick = {
+                val bookingsList = uiState.bookings ?: emptyList()
+                val file = ViewAssistanceExportUtils.exportBookingsToPdf(context, bookingsList)
+                if (file != null) {
+                    Toast.makeText(context, "PDF guardado en Descargas", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "Error al generar PDF", Toast.LENGTH_SHORT).show()
+                }
+            }, modifier = Modifier.weight(1f)) {
+                Text("Guardar PDF")
             }
             Spacer(modifier = Modifier.width(16.dp))
-            Button(onClick = onDownloadCsv, modifier = Modifier.weight(1f)) {
-                Text("Descargar CSV")
+            Button(onClick = {
+                val bookingsList = uiState.bookings ?: emptyList()
+                val file = ViewAssistanceExportUtils.exportBookingsToCsv(context, bookingsList)
+                if (file != null) {
+                    Toast.makeText(context, "CSV guardado en Descargas", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "Error al generar CSV", Toast.LENGTH_SHORT).show()
+                }
+            }, modifier = Modifier.weight(1f)) {
+                Text("Guardar CSV")
             }
         }
     }
