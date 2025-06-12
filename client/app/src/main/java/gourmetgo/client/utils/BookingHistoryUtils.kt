@@ -67,6 +67,7 @@ object BookingHistoryUtils {
             "confirmed" -> "Confirmada"
             "cancelled" -> "Cancelada"
             "expired" -> "Expirada"
+            "attended" -> "Asistida"
             else -> "Desconocido"
         }
     }
@@ -75,12 +76,17 @@ object BookingHistoryUtils {
         return booking.status == "pending"
     }
 
+    fun canRateBooking(booking: BookingSummary): Boolean {
+        return booking.status == "attended"
+    }
+
     fun getStatusColor(status: String): String {
         return when (status) {
             "pending" -> "orange"
             "confirmed" -> "green"
             "cancelled" -> "red"
             "expired" -> "gray"
+            "attended" -> "blue"
             else -> "gray"
         }
     }

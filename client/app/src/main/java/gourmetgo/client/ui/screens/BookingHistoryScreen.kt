@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,11 +43,11 @@ import gourmetgo.client.ui.components.FilterChip
 import java.text.SimpleDateFormat
 import java.util.*
 
-
 @Composable
 fun BookingHistoryScreen(
     viewModel: BookingHistoryViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToRating: (BookingSummary) -> Unit = {}
 ) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
@@ -317,6 +318,9 @@ fun BookingHistoryScreen(
                                     viewModel.downloadBookingPDF(context, booking) { _, message ->
                                         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
                                     }
+                                },
+                                onRateClick = {
+                                    onNavigateToRating(booking)
                                 }
                             )
                         }
@@ -339,6 +343,9 @@ fun BookingHistoryScreen(
                                     viewModel.downloadBookingPDF(context, booking) { _, message ->
                                         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
                                     }
+                                },
+                                onRateClick = {
+                                    onNavigateToRating(booking)
                                 }
                             )
                         }
@@ -441,7 +448,8 @@ fun StatItem(label: String, value: String, color: Color) {
 @Composable
 fun EnhancedBookingHistoryCard(
     booking: BookingSummary,
-    onDownloadPDF: () -> Unit
+    onDownloadPDF: () -> Unit,
+    onRateClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -533,24 +541,71 @@ fun EnhancedBookingHistoryCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Botón de descarga PDF
-            OutlinedButton(
-                onClick = onDownloadPDF,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(
-                    Icons.Default.Download,
-                    contentDescription = "Descargar",
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Descargar Comprobante PDF",
-                    fontSize = 14.sp
-                )
+            // Botones de acción
+            if (booking.status == "attended") {
+                // Mostrar botones de calificar y descargar PDF lado a lado
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onRateClick,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = "Calificar",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Calificar",
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = onDownloadPDF,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Download,
+                            contentDescription = "Descargar",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "PDF",
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            } else {
+                // Solo mostrar botón de descarga PDF
+                OutlinedButton(
+                    onClick = onDownloadPDF,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.Download,
+                        contentDescription = "Descargar",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Descargar Comprobante PDF",
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
     }

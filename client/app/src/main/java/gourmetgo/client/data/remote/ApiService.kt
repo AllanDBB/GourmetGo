@@ -21,6 +21,8 @@ import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.models.dtos.UpdateUserResponse
 import gourmetgo.client.data.models.dtos.UpdateExperienceRequest
 import gourmetgo.client.data.models.dtos.AssistanceResponse
+import gourmetgo.client.data.models.dtos.RatingRequest
+import gourmetgo.client.data.models.dtos.RatingResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -38,8 +40,6 @@ interface ApiService {
 
     @POST("auth/register-chef")
     suspend fun registerChef(@Body request: RegisterChefRequest): RegisterChefResponse
-
-
 
     @GET("experiences")
     suspend fun getExperiences(): ExperiencesResponse
@@ -92,5 +92,9 @@ interface ApiService {
         @Path("id") id: String
     ): List<AssistanceResponse>
 
-
+    @POST("ratings")
+    suspend fun createRating(
+        @Header("Authorization") token: String,
+        @Body request: RatingRequest
+    ): RatingResponse
 }

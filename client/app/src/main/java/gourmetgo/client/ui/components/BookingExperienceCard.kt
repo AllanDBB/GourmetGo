@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,7 +34,8 @@ import gourmetgo.client.utils.BookingHistoryUtils
 @Composable
 fun BookingHistoryCard(
     booking: BookingSummary,
-    onCancelClick: () -> Unit
+    onCancelClick: () -> Unit,
+    onRateClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -68,6 +70,7 @@ fun BookingHistoryCard(
                         "confirmed" -> MaterialTheme.colorScheme.primaryContainer
                         "cancelled" -> MaterialTheme.colorScheme.errorContainer
                         "expired" -> MaterialTheme.colorScheme.surfaceVariant
+                        "attended" -> MaterialTheme.colorScheme.primaryContainer
                         else -> MaterialTheme.colorScheme.surfaceVariant
                     },
                     shape = MaterialTheme.shapes.small
@@ -81,6 +84,7 @@ fun BookingHistoryCard(
                             "confirmed" -> MaterialTheme.colorScheme.onPrimaryContainer
                             "cancelled" -> MaterialTheme.colorScheme.onErrorContainer
                             "expired" -> MaterialTheme.colorScheme.onSurfaceVariant
+                            "attended" -> MaterialTheme.colorScheme.onPrimaryContainer
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
                         }
                     )
@@ -163,35 +167,49 @@ fun BookingHistoryCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            if (BookingHistoryUtils.canCancelBooking(booking)) {
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedButton(
-                    onClick = onCancelClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text(
-                        text = "Cancelar Reserva",
-                        fontSize = 14.sp
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.height(12.dp))
 
-            if (booking.status == "attended") {
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedButton(
-                    onClick = {}, // No hace nada
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Text(
-                        text = "Calificar",
-                        fontSize = 14.sp
-                    )
+            // Botones de acción
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Botón de cancelar (solo si puede cancelar)
+                if (BookingHistoryUtils.canCancelBooking(booking)) {
+                    OutlinedButton(
+                        onClick = onCancelClick,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text(
+                            text = "Cancelar",
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
+                // Botón de calificar (solo si la experiencia fue atendida)
+                if (booking.status == "attended") {
+                    OutlinedButton(
+                        onClick = onRateClick,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = "Calificar",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Calificar",
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }
