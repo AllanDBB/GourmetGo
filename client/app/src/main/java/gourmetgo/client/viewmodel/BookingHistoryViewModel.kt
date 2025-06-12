@@ -192,14 +192,15 @@ class BookingHistoryViewModel(
 
                 pdfDocument.finishPage(page)
 
-                val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-                if (dir != null && !dir.exists()) dir.mkdirs()
-                val file = File(dir, "Comprobante_${booking.bookingCode}.pdf")
-                val outputStream = FileOutputStream(file)
+                // Guardar en carpeta pública de Documentos
+                val dir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS)
+                if (!dir.exists()) dir.mkdirs()
+                val file = java.io.File(dir, "Comprobante_${booking.bookingCode}.pdf")
+                val outputStream = java.io.FileOutputStream(file)
                 pdfDocument.writeTo(outputStream)
                 pdfDocument.close()
                 outputStream.close()
-                onResult(true, "PDF guardado en: ${file.absolutePath}")
+                onResult(true, "PDF guardado en Documentos: ${file.absolutePath}")
             } catch (e: Exception) {
                 onResult(false, "Error al generar PDF: ${e.message}")
             }

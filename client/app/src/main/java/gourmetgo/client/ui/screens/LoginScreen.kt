@@ -32,8 +32,8 @@ fun LoginScreen(
     viewModel: AuthViewModel,
     onLoginSuccess: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("Nataliaorozcodelgado@gmail.com") }
+    var password by remember { mutableStateOf("abcdeF.1234") }
     var passwordVisible by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
