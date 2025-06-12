@@ -26,7 +26,8 @@ import gourmetgo.client.ui.components.ChefExperienceCard
 fun MyExperiencesChefScreen(
     viewModel: MyExperiencesChefViewModel,
     onNavigateToCreate: () -> Unit,
-    onNavigateToExperienceDetails: (String) -> Unit
+    onNavigateToExperienceDetails: (String) -> Unit,
+    onNavigateToAssistance: (String) -> Unit
 ) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
@@ -124,6 +125,7 @@ fun MyExperiencesChefScreen(
                         ChefExperienceCard(
                             experience = experience,
                             onDetailsClick = { onNavigateToExperienceDetails(experience._id) },
+                            onAssistanceClick = { onNavigateToAssistance(experience._id) },
                             modifier = Modifier
                         )
                     }
