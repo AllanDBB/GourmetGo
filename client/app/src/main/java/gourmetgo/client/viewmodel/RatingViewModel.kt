@@ -18,10 +18,10 @@ import java.net.UnknownHostException
 
 class RatingViewModel(
     private val repository: RatingRepository,
-    private val booking: BookingSummary
+    private val experienceId: String
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(RatingUiState(booking = booking))
+    var uiState by mutableStateOf(RatingUiState())
         private set
 
     fun submitRating(score: Int, comment: String) {
@@ -50,7 +50,7 @@ class RatingViewModel(
                 uiState = uiState.copy(isSubmitting = true, error = null)
 
                 repository.createRating(
-                    experienceId = booking.experience._id,
+                    experienceId = experienceId,
                     score = score,
                     comment = comment.trim()
                 )

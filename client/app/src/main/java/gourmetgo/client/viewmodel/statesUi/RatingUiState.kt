@@ -6,7 +6,6 @@ import gourmetgo.client.data.models.dtos.BookingSummary
 data class RatingUiState(
     val isLoading: Boolean = false,
     val isSubmitting: Boolean = false,
-    val booking: BookingSummary? = null,
     val rating: Rating? = null,
     val ratingSuccess: Boolean = false,
     val error: String? = null

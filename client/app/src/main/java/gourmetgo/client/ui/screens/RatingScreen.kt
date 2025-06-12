@@ -87,91 +87,28 @@ fun RatingScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Información de la experiencia
-            uiState.booking?.let { booking ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = booking.experience.title,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Fecha: ${BookingHistoryUtils.formatCreatedDate(booking.experience.date)}",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Text(
-                            text = "Personas: ${booking.people}",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Text(
-                            text = "Código: ${booking.bookingCode}",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Título de calificación
+            // Título
             Text(
-                text = "¿Cómo fue tu experiencia?",
+                text = "¿Cómo calificarías tu experiencia?",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
+            // Subtítulo
             Text(
-                text = "Tu opinión nos ayuda a mejorar",
+                text = "Tu opinión es muy importante para nosotros",
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Sistema de estrellas
-            Text(
-                text = "Calificación",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
+            // Estrellas de calificación
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -209,73 +146,24 @@ fun RatingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Texto descriptivo de la calificación
-            Text(
-                text = when (selectedRating) {
-                    1 -> "Muy malo"
-                    2 -> "Malo"
-                    3 -> "Regular"
-                    4 -> "Bueno"
-                    5 -> "Excelente"
-                    else -> "Selecciona una calificación"
-                },
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = if (selectedRating > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
             Spacer(modifier = Modifier.height(32.dp))
 
             // Campo de comentario
-            Text(
-                text = "Comentario *",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
             OutlinedTextField(
                 value = comment,
-                onValueChange = { if (it.length <= 500) comment = it },
-                placeholder = {
-                    Text("Comparte tu experiencia y ayuda a otros usuarios...")
-                },
+                onValueChange = { comment = it },
+                label = { Text("Comentario") },
+                placeholder = { Text("Cuéntanos sobre tu experiencia...") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 4,
-                maxLines = 6,
-                supportingText = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = if (comment.length < 10) "Mínimo 10 caracteres" else "✓",
-                            color = if (comment.length < 10)
-                                MaterialTheme.colorScheme.error
-                            else
-                                MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "${comment.length}/500",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                isError = comment.isNotEmpty() && comment.length < 10,
+                maxLines = 8,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Botón enviar
             Button(

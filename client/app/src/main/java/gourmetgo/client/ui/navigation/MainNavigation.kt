@@ -46,10 +46,8 @@ import gourmetgo.client.viewmodel.RegisterUserViewModel
 import gourmetgo.client.viewmodel.RegisterChefViewModel
 import gourmetgo.client.viewmodel.factories.RegisterUserViewModelFactory
 import gourmetgo.client.viewmodel.factories.RegisterChefViewModelFactory
-import gourmetgo.client.data.models.dtos.BookingSummary
 import com.google.gson.Gson
 import java.net.URLEncoder
-import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
 @Composable
@@ -154,6 +152,11 @@ fun MainNavigation(
                         launchSingleTop = true
                     }
                 },
+                onNavigateToRating = { experienceId ->
+                    navController.navigate("rating/$experienceId") {
+                        launchSingleTop = true
+                    }
+                },
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate("login") {
@@ -193,22 +196,13 @@ fun MainNavigation(
         }
 
         composable(
-            "rating/{bookingJson}",
-            arguments = listOf(navArgument("bookingJson") { type = NavType.StringType })
+            "rating/{experienceId}",
+            arguments = listOf(navArgument("experienceId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val encodedBookingJson = backStackEntry.arguments?.getString("bookingJson") ?: return@composable
-            val bookingJson = URLDecoder.decode(encodedBookingJson, StandardCharsets.UTF_8.toString())
-
-            val booking = try {
-                Gson().fromJson(bookingJson, BookingSummary::class.java)
-            } catch (e: Exception) {
-                navController.popBackStack()
-                return@composable
-            }
-
+            val experienceId = backStackEntry.arguments?.getString("experienceId") ?: return@composable
             val ratingViewModel: RatingViewModel = viewModel(
-                factory = RatingViewModelFactory(context, booking),
-                key = "rating_${booking._id}"
+                factory = RatingViewModelFactory(context, experienceId),
+                key = "rating_$experienceId"
             )
 
             RatingScreen(
@@ -217,8 +211,8 @@ fun MainNavigation(
                     navController.popBackStack()
                 },
                 onRatingSuccess = {
-                    navController.navigate("booking_history") {
-                        popUpTo("rating/{bookingJson}") { inclusive = true }
+                    navController.navigate("experiences") {
+                        popUpTo("rating/{experienceId}") { inclusive = true }
                         launchSingleTop = true
                     }
                 }
