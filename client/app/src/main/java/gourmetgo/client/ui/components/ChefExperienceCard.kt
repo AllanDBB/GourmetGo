@@ -13,6 +13,7 @@ import gourmetgo.client.data.models.Experience
 fun ChefExperienceCard(
     experience: Experience,
     onDetailsClick: () -> Unit,
+    onAssistanceClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -85,7 +86,7 @@ fun ChefExperienceCard(
                     Text("Ver más detalles")
                 }
                 OutlinedButton(
-                    onClick = { /* TODO: Acción de ver asistencia */ },
+                    onClick = { onAssistanceClick() },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Ver asistencia")

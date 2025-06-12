@@ -8,6 +8,7 @@ import gourmetgo.client.data.responses.RegisterChefResponse
 import gourmetgo.client.data.models.Chef
 import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.Experience
+import gourmetgo.client.data.models.Booking
 import gourmetgo.client.data.models.dtos.BookingRequest
 import gourmetgo.client.data.models.dtos.BookingResponse
 import gourmetgo.client.data.models.dtos.LoginRequest
@@ -19,6 +20,7 @@ import gourmetgo.client.data.models.dtos.UpdateChefResponse
 import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.models.dtos.UpdateUserResponse
 import gourmetgo.client.data.models.dtos.UpdateExperienceRequest
+import gourmetgo.client.data.models.dtos.AssistanceResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -83,4 +85,12 @@ interface ApiService {
         @Path("id") id: String,
         @Body request: UpdateExperienceRequest
     ): Experience
+
+    @GET ("bookings/experiences/{id}/bookings")
+    suspend fun getExperienceBookings(
+        @Header("Authorization") token: String,
+        @Path("id") id: String
+    ): List<AssistanceResponse>
+
+
 }

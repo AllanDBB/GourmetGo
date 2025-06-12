@@ -31,6 +31,9 @@ import gourmetgo.client.ui.screens.ExperienceDetailsScreen
 import gourmetgo.client.ui.screens.UpdateExperienceScreen
 import gourmetgo.client.viewmodel.factories.UpdateExperienceViewModelFactory
 import gourmetgo.client.viewmodel.UpdateExperienceViewModel
+import gourmetgo.client.viewmodel.ViewAssistanceViewModel
+import gourmetgo.client.viewmodel.factories.ViewAssistanceViewModelFactory
+import gourmetgo.client.ui.screens.ViewAssistanceScreen
 
 
 import gourmetgo.client.ui.screens.RegisterUserScreen
@@ -83,7 +86,7 @@ fun MainNavigation(
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
-                    navController.navigate("experiences") {
+                    navController.navigate("my_experiences_chef") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
@@ -202,6 +205,9 @@ fun MainNavigation(
                 onNavigateToCreate = { /* ... */ },
                 onNavigateToExperienceDetails = { id ->
                     navController.navigate("experiences/$id")
+                },
+                onNavigateToAssistance = { id ->
+                    navController.navigate("assistance/$id")
                 }
             )
         }
@@ -241,6 +247,25 @@ fun MainNavigation(
                         launchSingleTop = true
                     }
                 }
+            )
+        }
+    
+
+        composable("assistance/{experienceId}") { backStackEntry ->
+            val experienceId = backStackEntry.arguments?.getString("experienceId") ?: return@composable
+            val assistanceViewModel: ViewAssistanceViewModel = viewModel(
+                factory = ViewAssistanceViewModelFactory(context, experienceId)
+            )
+
+            ViewAssistanceScreen(
+                viewModel = assistanceViewModel,
+                onDownloadPdf = {
+                    // dsp
+                },
+                onDownloadCsv = {
+                    // dsp
+                },
+                onBack = { navController.popBackStack() }
             )
         }
     }
