@@ -9,5 +9,6 @@ data class Chef(
     val phone: String = "",
     val location: String = "",
     val preferences: List<String> = emptyList(), // tipo cocina
+    val password: String = "",
     val avatar: String = "",
 )

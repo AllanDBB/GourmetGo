@@ -48,10 +48,8 @@ exports.updateExperience = async (req, res) => {
     const experienceId = req.params.id;
     const { location, date, status, capacity, price } = req.body;
 
-    const experience = await Experience.findById(experienceId).populate({
-      path: 'chef',
-      populate: { path: 'user' }
-    });
+    const experience = await Experience.findById(experienceId);
+
     if (!experience) return res.status(404).json({ message: 'Experiencia no encontrada.' });
 
     if (status && experience.status === 'Próximamente' && status === 'Activa') {
@@ -62,13 +60,21 @@ exports.updateExperience = async (req, res) => {
 
     if (location !== undefined) experience.location = location;
     if (date !== undefined) experience.date = date;
-    if (capacity !== undefined) experience.capacity = capacity;
-    if (price !== undefined) experience.price = price;
+    if (price !== undefined) experience.price = price; 
+
+    // Actualizar remainingCapacity si se cambia la capacidad
+    if (capacity !== undefined) {
+      const oldCapacity = experience.capacity;
+      const capacityDifference = capacity - oldCapacity;
+      experience.capacity = capacity;
+      experience.remainingCapacity = experience.remainingCapacity + capacityDifference;
+    }
 
     await experience.save();
 
+
     // Enviar correo al chef notificando la actualización
-    const chefUser = experience.chef.user;
+    const chefUser = await User.findById(experience.chef);
     await mailer.sendMailTemplate(
       chefUser.email,
       '¡Tu experiencia ha sido actualizada!',
@@ -80,6 +86,7 @@ exports.updateExperience = async (req, res) => {
         location: experience.location,
         capacity: experience.capacity,
         price: experience.price,
+        remainingCapacity: experience.remainingCapacity,
         year: new Date().getFullYear()
       }
     );

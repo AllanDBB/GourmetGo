@@ -27,10 +27,10 @@
             </intent-filter>
         </activity>
 
-        <!-- FileProvider para compartir archivos de forma segura -->
+        
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="gourmetgo.client.fileprovider"
+            android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

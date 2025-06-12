@@ -1,8 +1,14 @@
 package gourmetgo.client.data.remote
 
+import gourmetgo.client.data.models.dtos.RegisterUserRequest
+import gourmetgo.client.data.models.dtos.RegisterUserResponse
+import gourmetgo.client.data.models.dtos.RegisterChefRequest
+import gourmetgo.client.data.responses.RegisterChefResponse
+
 import gourmetgo.client.data.models.Chef
 import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.Experience
+import gourmetgo.client.data.models.Booking
 import gourmetgo.client.data.models.dtos.BookingRequest
 import gourmetgo.client.data.models.dtos.BookingResponse
 import gourmetgo.client.data.models.dtos.BookingSummary
@@ -13,6 +19,8 @@ import gourmetgo.client.data.models.dtos.UpdateChefRequest
 import gourmetgo.client.data.models.dtos.UpdateChefResponse
 import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.models.dtos.UpdateUserResponse
+import gourmetgo.client.data.models.dtos.UpdateExperienceRequest
+import gourmetgo.client.data.models.dtos.AssistanceResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -25,8 +33,22 @@ interface ApiService {
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 
+    @POST("auth/register")
+    suspend fun register(@Body request: RegisterUserRequest): RegisterUserResponse
+
+    @POST("auth/register-chef")
+    suspend fun registerChef(@Body request: RegisterChefRequest): RegisterChefResponse
+
+
+
     @GET("experiences")
     suspend fun getExperiences(): ExperiencesResponse
+
+    @GET("chefs/{id}/experiences")
+    suspend fun getChefExperiences(@Path("id") id: String): List<Experience>
+
+    @GET("experiences/{id}")
+    suspend fun getExperienceById(@Path("id") id: String): Experience
 
     @GET("users/me")
     suspend fun getClientMe(@Header("Authorization") token: String): Client
@@ -57,6 +79,18 @@ interface ApiService {
         @Header("Authorization") token: String
     ): List<BookingSummary>
 
-    @GET("experiences/{id}")
-    suspend fun getExperienceById(@Path("id") id: String): Experience
+    @PUT("experiences/{id}")
+    suspend fun updateExperience(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body request: UpdateExperienceRequest
+    ): Experience
+
+    @GET ("bookings/experiences/{id}/bookings")
+    suspend fun getExperienceBookings(
+        @Header("Authorization") token: String,
+        @Path("id") id: String
+    ): List<AssistanceResponse>
+
+
 }

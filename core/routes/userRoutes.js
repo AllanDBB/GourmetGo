@@ -10,4 +10,6 @@ router.get('/me', auth, userController.getMyProfile);
 
 router.get('/:id', userController.getPublicProfile);
 
+router.put('/change-password', auth, userController.changePassword);
+
 module.exports = router;
