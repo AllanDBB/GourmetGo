@@ -5,7 +5,7 @@ const chefController = require('./chefController');
 const mailer = require('../utils/mailer');
 const recoveryCodes = new Map();
 const { validateUserRegistration, validateChefRegistration } = require('../utils/validators');
-const { generateDeleteCode } = require('../utils/deleteCodeGenerator');
+const { generateDeleteCode } = require('../utils/deleteCode');
 
 // Normal user registration
 exports.registerUser = async (req, res) => {
