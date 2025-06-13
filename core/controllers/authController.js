@@ -70,14 +70,14 @@ exports.registerChef = async (req, res) => {
       email,
       phone,
       password: hashedPassword,
-      avatar: photoUrl,
+      avatar: photoUrl || '',
       role: 'chef',
       location,
       preferences: [cuisineType]
     });
     await user.save();
 
-    await chefController.createChefProfile({
+    const chefProfile = await chefController.createChefProfile({
       userId: user._id,
       contactPerson,
       location,
@@ -97,7 +97,28 @@ exports.registerChef = async (req, res) => {
       }
     );
 
-    res.status(201).json({ message: 'Chef o restaurante registrado exitosamente.' });
+    // Devolver el perfil completo del chef
+    const chefData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar || '',
+      photoUrl: user.avatar || '',
+      role: user.role,
+      location: user.location,
+      preferences: user.preferences,
+      contactPerson: chefProfile.contactPerson,
+      cuisineType: chefProfile.cuisineType,
+      bio: chefProfile.bio,
+      experience: chefProfile.experience,
+      socialLinks: chefProfile.socialLinks
+    };
+
+    res.status(201).json({ 
+      message: 'Chef o restaurante registrado exitosamente.',
+      chef: chefData
+    });
   } catch (err) {
     res.status(500).json({ message: 'Error en el registro de chef.', error: err.message });
   }

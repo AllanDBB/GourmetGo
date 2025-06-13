@@ -46,7 +46,8 @@ exports.getMyProfile = async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        avatar: user.avatar,
+        avatar: user.avatar || '',
+        photoUrl: user.avatar || '',
         role: user.role,
         location: user.location || '',
         preferences: user.preferences || [],
@@ -65,7 +66,8 @@ exports.getMyProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       phone: user.phone,
-      avatar: user.avatar,
+      avatar: user.avatar || '',
+      photoUrl: user.avatar || '',
       role: user.role,
       preferences: user.preferences || []
     };
