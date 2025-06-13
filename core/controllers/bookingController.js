@@ -61,7 +61,7 @@ exports.createBooking = async (req, res) => {
       phone,
       termsAccepted,
       paymentMethod,
-      status: 'pending',
+      status: 'confirmed',
       bookingCode,
       qrCodes
     });
@@ -69,6 +69,12 @@ exports.createBooking = async (req, res) => {
 
     // Actualizar capacidad restante de la experiencia
     experience.remainingCapacity -= people;
+
+    // Si la capacidad restante es 0, marcar la experiencia como agotada
+    if (experience.remainingCapacity === 0) {
+      experience.status = 'Agotada';
+    }
+  
     await experience.save();
 
 

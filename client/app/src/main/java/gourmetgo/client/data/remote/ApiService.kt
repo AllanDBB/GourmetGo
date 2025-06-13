@@ -8,23 +8,31 @@ import gourmetgo.client.data.responses.RegisterChefResponse
 import gourmetgo.client.data.models.Chef
 import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.Experience
+import gourmetgo.client.data.models.Booking
 import gourmetgo.client.data.models.dtos.BookingRequest
 import gourmetgo.client.data.models.dtos.BookingResponse
+import gourmetgo.client.data.models.dtos.BookingSummary
 import gourmetgo.client.data.models.dtos.LoginRequest
 import gourmetgo.client.data.models.dtos.LoginResponse
 import gourmetgo.client.data.models.dtos.ExperiencesResponse
-import gourmetgo.client.data.models.dtos.MyBookingsResponse
 import gourmetgo.client.data.models.dtos.UpdateChefRequest
 import gourmetgo.client.data.models.dtos.UpdateChefResponse
 import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.models.dtos.UpdateUserResponse
 import gourmetgo.client.data.models.dtos.UpdateExperienceRequest
+import gourmetgo.client.data.models.dtos.AssistanceResponse
+import gourmetgo.client.data.models.dtos.RatingRequest
+import gourmetgo.client.data.models.dtos.RatingResponse
+import gourmetgo.client.data.models.dtos.DeleteExperienceRequest
+import gourmetgo.client.data.models.dtos.RequestDeleteRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PUT
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.DELETE
+import retrofit2.http.HTTP
 
 import retrofit2.http.Query
 
@@ -38,13 +46,6 @@ interface ApiService {
 
     @POST("auth/register-chef")
     suspend fun registerChef(@Body request: RegisterChefRequest): RegisterChefResponse
-
-    // Home Screen endpoints
-    @GET("experiences")
-    suspend fun listExperiences(): List<Experience>
-
-    @GET("experiences")
-    suspend fun listExperiencesWithSearch(@Query("q") query: String): List<Experience>
 
     @GET("experiences")
     suspend fun getExperiences(): ExperiencesResponse
@@ -82,7 +83,7 @@ interface ApiService {
     @GET("bookings/my")
     suspend fun getMyBookings(
         @Header("Authorization") token: String
-    ): MyBookingsResponse
+    ): List<BookingSummary>
 
     @PUT("experiences/{id}")
     suspend fun updateExperience(
@@ -90,4 +91,30 @@ interface ApiService {
         @Path("id") id: String,
         @Body request: UpdateExperienceRequest
     ): Experience
+
+    @GET ("bookings/experiences/{id}/bookings")
+    suspend fun getExperienceBookings(
+        @Header("Authorization") token: String,
+        @Path("id") id: String
+    ): List<AssistanceResponse>
+
+    @POST("ratings")
+    suspend fun createRating(
+        @Header("Authorization") token: String,
+        @Body request: RatingRequest
+    ): RatingResponse
+
+    @POST("experiences/{id}/request-delete")
+    suspend fun requestExperienceDelete(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body request: RequestDeleteRequest
+    ): RequestDeleteRequest
+
+    @HTTP(method = "DELETE", path = "experiences/{id}/", hasBody = true)
+    suspend fun deleteExperience(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body request: DeleteExperienceRequest
+    ): RequestDeleteRequest
 }

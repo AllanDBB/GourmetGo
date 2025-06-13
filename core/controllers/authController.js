@@ -3,7 +3,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const chefController = require('./chefController');
 const mailer = require('../utils/mailer');
+const recoveryCodes = new Map();
 const { validateUserRegistration, validateChefRegistration } = require('../utils/validators');
+const { generateDeleteCode } = require('../utils/deleteCode');
 
 // Normal user registration
 exports.registerUser = async (req, res) => {
@@ -70,12 +72,14 @@ exports.registerChef = async (req, res) => {
       email,
       phone,
       password: hashedPassword,
-      avatar: photoUrl,
-      role: 'chef'
+      avatar: photoUrl || '',
+      role: 'chef',
+      location,
+      preferences: [cuisineType]
     });
     await user.save();
 
-    await chefController.createChefProfile({
+    const chefProfile = await chefController.createChefProfile({
       userId: user._id,
       contactPerson,
       location,
@@ -95,7 +99,28 @@ exports.registerChef = async (req, res) => {
       }
     );
 
-    res.status(201).json({ message: 'Chef o restaurante registrado exitosamente.' });
+    // Devolver el perfil completo del chef
+    const chefData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar || '',
+      photoUrl: user.avatar || '',
+      role: user.role,
+      location: user.location,
+      preferences: user.preferences,
+      contactPerson: chefProfile.contactPerson,
+      cuisineType: chefProfile.cuisineType,
+      bio: chefProfile.bio,
+      experience: chefProfile.experience,
+      socialLinks: chefProfile.socialLinks
+    };
+
+    res.status(201).json({ 
+      message: 'Chef o restaurante registrado exitosamente.',
+      chef: chefData
+    });
   } catch (err) {
     res.status(500).json({ message: 'Error en el registro de chef.', error: err.message });
   }
@@ -123,7 +148,7 @@ exports.login = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { _id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     res.status(500).json({ message: 'Error en el login.', error: err.message });
   }
@@ -136,3 +161,61 @@ exports.logout = (req, res) => {
 exports.refresh = (req, res) => {
   res.json({ message: 'Refresh endpoint (implement if using refresh tokens)' });
 };
+
+
+exports.passwordRecovery = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Por favor, proporciona un correo electrónico.' });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+    const recoveryCode = generateDeleteCode();
+    recoveryCodes.set(user._id.toString(), recoveryCode);
+    await mailer.sendMailTemplate(
+      user.email,
+      'Código de recuperación de contraseña',
+      'recovery-code.html',
+      {
+        recoveryCode
+      }
+    );
+
+    res.json({ message: 'Código de recuperación enviado al correo.' });
+
+  } catch (err) {
+    res.status(500).json({ message: 'Error al enviar el código de recuperación.', error: err.message });
+  }
+}
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { userId, recoveryCode, newPassword } = req.body;
+    if (!userId || !recoveryCode || !newPassword) {
+      return res.status(400).json({ message: 'Por favor, proporciona el ID de usuario, el código de recuperación y la nueva contraseña.' });
+    }
+
+    const storedCode = recoveryCodes.get(userId.toString());
+    if (!storedCode || storedCode !== recoveryCode) {
+      return res.status(400).json({ message: 'Código de recuperación inválido.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await User.findByIdAndUpdate(userId, { password: hashedPassword });
+
+    // Eliminar el código de recuperación después de usarlo
+    recoveryCodes.delete(userId.toString());
+
+    res.json({ message: 'Contraseña actualizada exitosamente.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error al restablecer la contraseña.', error: err.message });
+  }
+}
+
+    
+
+
+
+
+
