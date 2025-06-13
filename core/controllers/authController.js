@@ -71,7 +71,9 @@ exports.registerChef = async (req, res) => {
       phone,
       password: hashedPassword,
       avatar: photoUrl,
-      role: 'chef'
+      role: 'chef',
+      location,
+      preferences: [cuisineType]
     });
     await user.save();
 
