@@ -17,6 +17,7 @@ exports.createExperience = async (req, res) => {
 
     const experienceData = { ...req.body, chef: userId };
     const experience = new Experience(experienceData);
+    experience.status = body.status || 'Próximamente';
     experience.remainingCapacity = experience.capacity; 
     await experience.save();
 
@@ -32,6 +33,7 @@ exports.createExperience = async (req, res) => {
         location: experience.location,
         capacity: experience.capacity,
         duration: experience.duration,
+        status: experience.status || 'Próximamente',
         description: experience.description,
         price: experience.price,
         year: new Date().getFullYear()
