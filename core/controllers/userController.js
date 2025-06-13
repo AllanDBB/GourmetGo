@@ -42,7 +42,7 @@ exports.getMyProfile = async (req, res) => {
       }
 
       const chefData = {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         phone: user.phone,
@@ -62,7 +62,7 @@ exports.getMyProfile = async (req, res) => {
     }
 
     const userData = {
-      id: user._id,
+      _id: user._id,
       name: user.name,
       email: user.email,
       phone: user.phone,
