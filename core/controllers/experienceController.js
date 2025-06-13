@@ -100,22 +100,20 @@ exports.updateExperience = async (req, res) => {
 
 exports.requestDeleteExperience = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id;
     const { email } = req.body;
 
     // Validar que el correo electrónico sea del chef
-    const experience = await Experience.findById(id).populate('chef');
+    const experience = await Experience.findById(id);
 
     if (!experience) return res.status(404).json({ message: 'Experiencia no encontrada.' });
     if (experience.status === 'Agotada') return res.status(400).json({ message: 'No se puede eliminar una experiencia agotada.' });
 
     // Buscar el chef:
-    const chefProfile = await ChefProfile.findOne({ user: experience.chef.user._id });
-    if (!chefProfile) return res.status(404).json({ message: 'Perfil de chef no encontrado.' });
-
-    // Buscar el usuario del chef:
-    const chefUser = await User.findById(chefProfile.user);
+    const chefUser  = await User.findById(experience.chef)
     if (!chefUser) return res.status(404).json({ message: 'Usuario del chef no encontrado.' });
+    if (chefUser.email !== email) return res.status(403).json({ message: 'Correo no autorizado.' });
+
 
     const code = generateDeleteCode();
     deleteCodes.set(`${id}:${email}`, code);
