@@ -30,6 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import gourmetgo.client.ui.components.ExperienceCard
 import gourmetgo.client.data.models.Experience
 import gourmetgo.client.viewmodel.HomeViewModel
@@ -959,15 +962,33 @@ fun EnhancedExperienceCard(
                                     color = if (isUpcoming) Color(0xFFFF6B35).copy(alpha = 0.1f) else accentColor.copy(alpha = 0.1f),
                                     shape = RoundedCornerShape(8.dp)
                                 )
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                        
-                        Icon(
-                            painter = painterResource(id = android.R.drawable.ic_menu_gallery),
-                            contentDescription = null,
-                            tint = primaryColor.copy(alpha = 0.3f),
-                            modifier = Modifier.size(24.dp)
-                        )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)                        )
+                          // Imagen de la experiencia en lugar del ícono
+                        if (experience.images.isNotEmpty()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(experience.images.first())
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Imagen de ${experience.title}",
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .background(
+                                        color = primaryColor.copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ),
+                                contentScale = ContentScale.Crop,
+                                error = painterResource(id = android.R.drawable.ic_menu_gallery),
+                                placeholder = painterResource(id = android.R.drawable.ic_menu_gallery)
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = android.R.drawable.ic_menu_gallery),
+                                contentDescription = null,
+                                tint = primaryColor.copy(alpha = 0.3f),
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
                     }
                     
                     Text(

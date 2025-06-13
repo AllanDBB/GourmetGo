@@ -48,10 +48,9 @@ fun BookingHistoryCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
+            ) {                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = booking.experience.title,
+                        text = booking.experience?.title ?: "Experiencia no disponible",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary

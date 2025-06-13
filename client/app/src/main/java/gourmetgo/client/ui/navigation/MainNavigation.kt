@@ -223,9 +223,10 @@ fun MainNavigation(
                 viewModel = bookingHistoryViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
-                },
-                onNavigateToRating = { booking ->
-                    navController.navigate("rating/${booking.experience._id}")
+                },                onNavigateToRating = { booking ->
+                    booking.experience?._id?.let { experienceId ->
+                        navController.navigate("rating/$experienceId")
+                    }
                 }
             )
         }

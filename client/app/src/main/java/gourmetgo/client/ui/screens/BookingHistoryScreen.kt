@@ -48,8 +48,7 @@ fun BookingHistoryScreen(
     viewModel: BookingHistoryViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToRating: (BookingSummary) -> Unit = {}
-) {
-    val context = LocalContext.current
+) {    val context = LocalContext.current
     val uiState = viewModel.uiState
 
     // Estados para filtros
@@ -61,7 +60,14 @@ fun BookingHistoryScreen(
     var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        viewModel.loadBookingHistory()
+        try {
+            android.util.Log.d("BookingHistoryScreen", "BookingHistoryScreen started")
+            android.util.Log.d("BookingHistoryScreen", "About to call loadBookingHistory")
+            viewModel.loadBookingHistory()
+            android.util.Log.d("BookingHistoryScreen", "loadBookingHistory completed")
+        } catch (e: Exception) {
+            android.util.Log.e("BookingHistoryScreen", "Error in loadBookingHistory", e)
+        }
     }
 
     LaunchedEffect(uiState.error) {
@@ -239,16 +245,19 @@ fun BookingHistoryScreen(
                 statusFilter = selectedStatusFilter,
                 locationFilter = selectedLocationFilter,
                 categoryFilter = selectedCategoryFilter
-            )
-
-            // Separar reservas futuras y pasadas
+            )            // Separar reservas futuras y pasadas
             val now = Calendar.getInstance().time
             val (futureBookings, pastBookings) = filteredBookings.partition { booking ->
                 try {
                     val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
                     sdf.timeZone = TimeZone.getTimeZone("UTC")
-                    val expDate = sdf.parse(booking.experience.date)
-                    expDate != null && expDate.after(now)
+                    val dateStr = booking.experience?.date
+                    if (dateStr.isNullOrEmpty()) {
+                        false
+                    } else {
+                        val expDate = sdf.parse(dateStr)
+                        expDate != null && expDate.after(now)
+                    }
                 } catch (e: Exception) {
                     false
                 }
@@ -463,10 +472,9 @@ fun EnhancedBookingHistoryCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
+            ) {                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = booking.experience.title,
+                        text = booking.experience?.title ?: "Experiencia no disponible",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
@@ -507,17 +515,17 @@ fun EnhancedBookingHistoryCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Información de la experiencia
+            Spacer(modifier = Modifier.height(12.dp))            // Información de la experiencia
             ExperienceInfoRow(
                 icon = Icons.Default.CalendarToday,
-                text = BookingHistoryUtils.formatCreatedDate(booking.experience.date)
+                text = booking.experience?.date?.let { BookingHistoryUtils.formatCreatedDate(it) } ?: "Fecha no disponible"
             )
 
             ExperienceInfoRow(
                 icon = Icons.Default.LocationOn,
-                text = booking.experience.location.take(50) + if (booking.experience.location.length > 50) "..." else ""
+                text = booking.experience?.location?.let { 
+                    it.take(50) + if (it.length > 50) "..." else ""
+                } ?: "Ubicación no disponible"
             )
 
             ExperienceInfoRow(
@@ -539,14 +547,17 @@ fun EnhancedBookingHistoryCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Botones de acción
+            Spacer(modifier = Modifier.height(12.dp))            // Botones de acción
             val isPastBooking = try {
                 val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
                 sdf.timeZone = TimeZone.getTimeZone("UTC")
-                val expDate = sdf.parse(booking.experience.date)
-                expDate != null && expDate.before(Calendar.getInstance().time)
+                val dateStr = booking.experience?.date
+                if (dateStr.isNullOrEmpty()) {
+                    false
+                } else {
+                    val expDate = sdf.parse(dateStr)
+                    expDate != null && expDate.before(Calendar.getInstance().time)
+                }
             } catch (e: Exception) {
                 false
             }
@@ -881,13 +892,13 @@ fun getStatusIcon(status: String): ImageVector {
 }
 
 fun getAvailableLocations(bookings: List<BookingSummary>): List<String> {
-    return bookings.map { it.experience.location }
+    return bookings.mapNotNull { it.experience?.location }
         .distinct()
         .sorted()
 }
 
 fun getAvailableCategories(bookings: List<BookingSummary>): List<String> {
-    return bookings.map { it.experience.category }
+    return bookings.mapNotNull { it.experience?.category }
         .filter { it.isNotBlank() }
         .distinct()
         .sorted()
@@ -901,12 +912,11 @@ fun filterBookings(
     locationFilter: String?,
     categoryFilter: String?
 ): List<BookingSummary> {
-    return bookings.filter { booking ->
-        // Filtro por búsqueda
+    return bookings.filter { booking ->        // Filtro por búsqueda
         val matchesSearch = if (searchQuery.isBlank()) {
             true
         } else {
-            booking.experience.title.contains(searchQuery, ignoreCase = true)
+            booking.experience?.title?.contains(searchQuery, ignoreCase = true) == true
         }
 
         // Filtro por fecha
@@ -926,13 +936,11 @@ fun filterBookings(
         }
 
         // Filtro por estado
-        val matchesStatus = statusFilter == null || booking.status == statusFilter
-
-        // Filtro por ubicación
-        val matchesLocation = locationFilter == null || booking.experience.location == locationFilter
+        val matchesStatus = statusFilter == null || booking.status == statusFilter        // Filtro por ubicación
+        val matchesLocation = locationFilter == null || booking.experience?.location == locationFilter
 
         // Filtro por categoría
-        val matchesCategory = categoryFilter == null || booking.experience.category == categoryFilter
+        val matchesCategory = categoryFilter == null || booking.experience?.category == categoryFilter
 
         matchesSearch && matchesDate && matchesStatus && matchesLocation && matchesCategory
     }.sortedByDescending { it.createdAt }

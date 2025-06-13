@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -126,15 +127,17 @@ fun EditProfileScreen(
                     contactPerson = chef.contactPerson
                     location = chef.location
                     // Actualizado: cargamos las preferencias del chef como tipos de cocina
-                    selectedCuisineTypes = chef.preferences
-                }
+                    selectedCuisineTypes = chef.preferences                }
             }
         }
     }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
-            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+            // No mostrar Toast para errores de datos no encontrados (situación normal)
+            if (!error.contains("No se encontraron datos del usuario")) {
+                Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+            }
             viewModel.clearError()
         }
     }

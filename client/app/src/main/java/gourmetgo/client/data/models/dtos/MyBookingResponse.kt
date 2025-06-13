@@ -19,5 +19,5 @@ data class BookingSummary(
     val qrCodes : List<String>,
     val createdAt: String = "",
 
-    val experience: Experience = Experience()
+    val experience: Experience? = null
 )

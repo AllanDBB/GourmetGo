@@ -28,7 +28,16 @@ class BookingHistoryViewModel(
     var uiState by mutableStateOf(BookingHistoryUiState())
         private set
 
+    init {
+        if (AppConfig.ENABLE_LOGGING) {
+            Log.d("BookingHistoryViewModel", "ViewModel initialized")
+        }
+    }
+
     fun loadBookingHistory() {
+        if (AppConfig.ENABLE_LOGGING) {
+            Log.d("BookingHistoryViewModel", "Starting to load booking history")
+        }
         viewModelScope.launch {
             try {
                 uiState = uiState.copy(isLoading = true, error = null)
@@ -176,11 +185,11 @@ class BookingHistoryViewModel(
                 y += 30
                 canvas.drawText("Nombre: ${booking.name}", 10f, y.toFloat(), paint)
                 y += 25
-                canvas.drawText("Experiencia: ${booking.experience.title}", 10f, y.toFloat(), paint)
+                canvas.drawText("Experiencia: ${booking.experience?.title ?: "No disponible"}", 10f, y.toFloat(), paint)
                 y += 25
-                canvas.drawText("Fecha: ${booking.experience.date}", 10f, y.toFloat(), paint)
+                canvas.drawText("Fecha: ${booking.experience?.date ?: "No disponible"}", 10f, y.toFloat(), paint)
                 y += 25
-                canvas.drawText("Lugar: ${booking.experience.location}", 10f, y.toFloat(), paint)
+                canvas.drawText("Lugar: ${booking.experience?.location ?: "No disponible"}", 10f, y.toFloat(), paint)
                 y += 25
                 canvas.drawText("Estado: ${booking.status}", 10f, y.toFloat(), paint)
                 y += 25
