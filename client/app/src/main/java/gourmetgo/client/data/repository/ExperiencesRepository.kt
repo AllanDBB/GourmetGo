@@ -33,11 +33,9 @@ class ExperiencesRepository(
             Log.e("ExperiencesRepository", "Error in mockup getAllExperiences", e)
             Result.failure(e)
         }
-    }
-
-    private suspend fun getAllExperiencesWithApi(): Result<List<Experience>> {
+    }    private suspend fun getAllExperiencesWithApi(): Result<List<Experience>> {
         return try {
-            val experiences = apiService.getExperiences().experiences
+            val experiences = apiService.getExperiences()
             Log.d("ExperiencesRepository", "Loaded ${experiences.size} experiences from API")
             Result.success(experiences)
         } catch (e: Exception) {

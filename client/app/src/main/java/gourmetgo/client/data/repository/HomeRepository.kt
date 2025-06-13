@@ -89,10 +89,8 @@ class HomeRepository(
     // API Methods
     private suspend fun getPopularExperiencesFromApi(): Result<List<Experience>> {
         return try {
-            Log.d("HomeRepository", "Fetching popular experiences from API")
-            
-            // Llamar al endpoint de experiencias - las populares son las que tienen status "Activa"
-            val experiences = apiService.listExperiences()
+            Log.d("HomeRepository", "Fetching popular experiences from API")            // Llamar al endpoint de experiencias - las populares son las que tienen status "Activa"
+            val experiences = apiService.getExperiences()
             
             // Filtrar solo las activas y limitamos a las primeras 10 para "populares"
             val popularExperiences = experiences
@@ -111,11 +109,10 @@ class HomeRepository(
     }
 
     private suspend fun getUpcomingExperiencesFromApi(): Result<List<Experience>> {
-        return try {
-            Log.d("HomeRepository", "Fetching upcoming experiences from API")
+        return try {            Log.d("HomeRepository", "Fetching upcoming experiences from API")
             
             // Llamar al endpoint de experiencias - las próximas son las que tienen status "Próximamente"
-            val experiences = apiService.listExperiences()
+            val experiences = apiService.getExperiences()
             
             // Filtrar solo las próximas y limitamos a las primeras 10
             val upcomingExperiences = experiences
@@ -134,11 +131,10 @@ class HomeRepository(
     }
 
     private suspend fun getCategoriesFromApi(): Result<List<String>> {
-        return try {
-            Log.d("HomeRepository", "Fetching categories from API")
+        return try {            Log.d("HomeRepository", "Fetching categories from API")
             
             // Obtener todas las experiencias y extraer categorías únicas
-            val experiences = apiService.listExperiences()
+            val experiences = apiService.getExperiences()
             val categories = experiences
                 .map { it.category }
                 .distinct()
@@ -156,11 +152,17 @@ class HomeRepository(
     }
 
     private suspend fun searchExperiencesFromApi(query: String): Result<List<Experience>> {
-        return try {
-            Log.d("HomeRepository", "Searching experiences from API with query: $query")
+        return try {            Log.d("HomeRepository", "Searching experiences from API with query: $query")
             
-            // Usar el parámetro de búsqueda del API
-            val experiences = apiService.listExperiencesWithSearch(query)
+            // Obtener todas las experiencias y filtrar del lado del cliente
+            val allExperiences = apiService.getExperiences()
+            
+            // Filtrar experiencias por título, descripción o categoría
+            val experiences = allExperiences.filter { experience ->
+                experience.title.contains(query, ignoreCase = true) ||
+                experience.description.contains(query, ignoreCase = true) ||
+                experience.category.contains(query, ignoreCase = true)
+            }
             
             if (AppConfig.ENABLE_LOGGING) {
                 Log.d("HomeRepository", "Found ${experiences.size} experiences for query: $query")
@@ -172,11 +174,10 @@ class HomeRepository(
             Result.failure(e)
         }
     }    private suspend fun getExperiencesByCategoryFromApi(category: String): Result<List<Experience>> {
-        return try {
-            Log.d("HomeRepository", "Fetching experiences by category from API: $category")
+        return try {            Log.d("HomeRepository", "Fetching experiences by category from API: $category")
             
             // Obtener todas las experiencias y filtrar por categoría
-            val experiences = apiService.listExperiences()
+            val experiences = apiService.getExperiences()
             
             // Log para debug: mostrar todas las categorías disponibles
             if (AppConfig.ENABLE_LOGGING) {
@@ -223,11 +224,10 @@ class HomeRepository(
     }
 
     private suspend fun getAllExperiencesFromApi(): Result<List<Experience>> {
-        return try {
-            Log.d("HomeRepository", "Fetching ALL experiences from API")
+        return try {            Log.d("HomeRepository", "Fetching ALL experiences from API")
             
             // Llamar al endpoint de experiencias - obtener todas sin filtros
-            val experiences = apiService.listExperiences()
+            val experiences = apiService.getExperiences()
             
             if (AppConfig.ENABLE_LOGGING) {
                 Log.d("HomeRepository", "Fetched ${experiences.size} total experiences")

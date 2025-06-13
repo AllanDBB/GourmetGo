@@ -60,12 +60,19 @@ class AuthRepository(
     private suspend fun mapUserToClient() {
         val client = apiService.getClientMe(token = "Bearer ${sharedPrefs.getToken()}" )
         sharedPrefs.saveClient(client)
-    }
-
-    private suspend fun mapUserToChef() {
-        val chef = apiService.getChefMe(token = "Bearer ${sharedPrefs.getToken()}")
-        Log.d("User Chef","$chef")
-        sharedPrefs.saveChef(chef)
+    }    private suspend fun mapUserToChef() {
+        try {
+            Log.d("AuthRepository", "Getting chef data from API...")
+            val chef = apiService.getChefMe(token = "Bearer ${sharedPrefs.getToken()}")
+            Log.d("AuthRepository", "Chef received from API: $chef")
+            Log.d("AuthRepository", "Chef _id: '${chef._id}'")
+            sharedPrefs.saveChef(chef)
+            Log.d("AuthRepository", "Chef saved to SharedPrefs")
+            Log.d("AuthRepository", sharedPrefs.debugUserData())
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error in mapUserToChef", e)
+            throw e
+        }
     }
 
     fun isLoggedIn(): Boolean {

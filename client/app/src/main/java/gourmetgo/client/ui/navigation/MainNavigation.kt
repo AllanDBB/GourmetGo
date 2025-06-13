@@ -8,20 +8,26 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import gourmetgo.client.ui.screens.LoginScreen
 import gourmetgo.client.ui.screens.ExperiencesScreen
 import gourmetgo.client.ui.screens.BookingHistoryScreen
 import gourmetgo.client.ui.screens.RatingScreen
+import gourmetgo.client.ui.screens.EditProfileScreen
+import gourmetgo.client.ui.screens.HomeScreen
 import gourmetgo.client.viewmodel.AuthViewModel
 import gourmetgo.client.viewmodel.ExperiencesViewModel
 import gourmetgo.client.viewmodel.ProfileViewModel
 import gourmetgo.client.viewmodel.BookingHistoryViewModel
 import gourmetgo.client.viewmodel.RatingViewModel
+import gourmetgo.client.viewmodel.HomeViewModel
 import gourmetgo.client.viewmodel.factories.AuthViewModelFactory
 import gourmetgo.client.viewmodel.factories.ExperiencesViewModelFactory
 import gourmetgo.client.viewmodel.factories.ProfileViewModelFactory
 import gourmetgo.client.viewmodel.factories.BookingHistoryViewModelFactory
 import gourmetgo.client.viewmodel.factories.RatingViewModelFactory
+import gourmetgo.client.viewmodel.factories.HomeViewModelFactory
 import gourmetgo.client.ui.screens.BookExperienceScreen
 import gourmetgo.client.viewmodel.BookingViewModel
 import gourmetgo.client.viewmodel.factories.BookingViewModelFactory
@@ -77,8 +83,8 @@ fun MainNavigation(
 
     val startDestination = when (authViewModel.uiState.userType) {
         "chef" -> "my_experiences_chef"
-        "user" -> "experiences"
-        else -> if (authViewModel.uiState.isLoggedIn) "experiences" else "login"
+        "user" -> "home"
+        else -> if (authViewModel.uiState.isLoggedIn) "home" else "login"
     }
 
     NavHost(
@@ -88,22 +94,48 @@ fun MainNavigation(
     ) {
         composable("login") {
             LoginScreen(
-                viewModel = authViewModel,
-                onLoginSuccess = {
+                viewModel = authViewModel,                onLoginSuccess = {
                     when (authViewModel.uiState.userType) {
                         "chef" -> navController.navigate("my_experiences_chef") {
                             popUpTo("login") { inclusive = true }
                         }
-                        "user" -> navController.navigate("experiences") {
+                        "user" -> navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
                         }
-                        else -> navController.navigate("experiences") {
+                        else -> navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
                         }
                     }
                 },
                 onNavigateToRegister = {
                     navController.navigate("register")
+                }            )
+        }
+
+        composable("home") {
+            HomeScreen(
+                viewModel = homeViewModel,
+                onGoToExperiences = {
+                    navController.navigate("experiences")
+                },
+                onNavigateToExperienceDetails = { experienceId ->
+                    navController.navigate("book_experience/$experienceId")
+                },
+                onNavigateToProfile = {
+                    navController.navigate("edit_profile") {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToHistory = {
+                    navController.navigate("booking_history") {
+                        launchSingleTop = true
+                    }
+                },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
@@ -112,7 +144,7 @@ fun MainNavigation(
             LaunchedEffect(Unit) {
                 registerUserViewModel.resetState()
             }
-
+            
             RegisterUserScreen(
                 viewModel = registerUserViewModel,
                 onRegisterSuccess = {
@@ -120,9 +152,10 @@ fun MainNavigation(
                         popUpTo("register") { inclusive = true }
                     }
                 },
-                onNavigateToExperienceDetails = { experienceId ->
-                    // TODO: Navigate to experience details screen
-                    // navController.navigate("experience_details/$experienceId")
+                onNavigateToLogin = {
+                    navController.navigate("login") {
+                        popUpTo("register") { inclusive = true }
+                    }
                 },
                 onNavigateToRegisterChef = {
                     navController.navigate("register-chef")
@@ -144,16 +177,19 @@ fun MainNavigation(
                 },
                 onNavigateToLogin = {
                     navController.popBackStack()
-                }
-            )
+                }            )
         }
 
         composable("experiences") {
             ExperiencesScreen(
                 viewModel = experiencesViewModel,
                 onNavigateToProfile = {
-                    // TODO: Navigate to profile screen
-                    // navController.navigate("profile")
+                    navController.navigate("edit_profile") {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToBooking = { experienceId ->
+                    navController.navigate("book_experience/$experienceId")
                 },
                 onNavigateToRating = { experienceId ->
                     navController.navigate("rating/$experienceId") {

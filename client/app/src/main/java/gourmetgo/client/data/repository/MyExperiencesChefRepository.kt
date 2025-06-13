@@ -13,18 +13,29 @@ class MyExperiencesChefRepository(
     private val sprefsManager: SharedPrefsManager
 ) {    suspend fun getAllMyExperiences(): Result<List<Experience>> {
         Log.d("MyExperiencesChefRepository", "Entrando a getAllMyExperiences")
+        Log.d("MyExperiencesChefRepository", sprefsManager.debugUserData())
+        
         val chef = sprefsManager.getChef()
-        Log.d("MyExperiencesChefRepository", "Chef from SharedPrefs: $chef")
-        val id = chef?._id ?: run {
-            Log.e("MyExperiencesChefRepository", "User ID is null in SharedPrefs")
-            return Result.failure(Exception("Usuario no encontrado en SharedPrefs"))
+        
+        if (chef == null) {
+            Log.e("MyExperiencesChefRepository", "Chef is null in SharedPrefs")
+            sprefsManager.clearCorruptedData()
+            return Result.failure(Exception("Chef no encontrado en SharedPrefs. Por favor, inicia sesión nuevamente."))
         }
+        
+        val id = chef._id
+        if (id.isBlank()) {
+            Log.e("MyExperiencesChefRepository", "Chef ID is blank in SharedPrefs")
+            sprefsManager.clearCorruptedData()
+            return Result.failure(Exception("ID del chef no válido. Por favor, inicia sesión nuevamente."))
+        }
+        
+        Log.d("MyExperiencesChefRepository", "Using chef ID: '$id'")
         return try {
             getAllMyExperiencesWithApi(id)
-        
         } catch (e: Exception) {
             Log.e("MyExperiencesChefRepository", "Error getting all experiences", e)
-            Result.failure(Exception("Error connection: ${e.message}"))
+            Result.failure(Exception("Error de conexión: ${e.message}"))
         }
     }
 

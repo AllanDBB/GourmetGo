@@ -42,13 +42,11 @@ interface ApiService {
     suspend fun login(@Body request: LoginRequest): LoginResponse
 
     @POST("auth/register")
-    suspend fun register(@Body request: RegisterUserRequest): RegisterUserResponse
-
-    @POST("auth/register-chef")
+    suspend fun register(@Body request: RegisterUserRequest): RegisterUserResponse    @POST("auth/register-chef")
     suspend fun registerChef(@Body request: RegisterChefRequest): RegisterChefResponse
 
     @GET("experiences")
-    suspend fun getExperiences(): ExperiencesResponse
+    suspend fun getExperiences(): List<Experience>
 
     @GET("chefs/{id}/experiences")
     suspend fun getChefExperiences(@Path("id") id: String): List<Experience>
