@@ -147,14 +147,9 @@ exports.deleteExperience = async (req, res) => {
     if (!experience) return res.status(404).json({ message: 'Experiencia no encontrada.' });
     if (experience.status === 'Agotada') return res.status(400).json({ message: 'No se puede eliminar una experiencia agotada.' });
 
-    // Buscar el chefProfile y el usuario del chef
-    const chefProfile = await ChefProfile.findOne({ user: experience.chef.user });
-    if (!chefProfile) return res.status(404).json({ message: 'Perfil de chef no encontrado.' });
-
-    const chefUser = await User.findById(chefProfile.user);
+    // Buscar el chef:
+    const chefUser  = await User.findById(experience.chef)
     if (!chefUser) return res.status(404).json({ message: 'Usuario del chef no encontrado.' });
-
-    // Validar correo
     if (chefUser.email !== email) return res.status(403).json({ message: 'Correo no autorizado.' });
 
     // Validar código
