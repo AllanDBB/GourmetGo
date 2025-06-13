@@ -266,29 +266,30 @@ private fun HomeContent(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = cardBackground),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                categories.forEachIndexed { index, category ->
-                    val isSelected = selectedCategoryIndex == index
+        ) {            if (categories.size > 3) {
+                // Si hay más de 3 categorías: "Todas" fija + resto scrolleable
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // "Todas" siempre visible y fija
+                    val isTodasSelected = selectedCategoryIndex == 0
                     Card(
                         modifier = Modifier
-                            .weight(1f)
+                            .width(80.dp) // Ancho más pequeño para "Todas"
                             .clickable { 
-                                onCategorySelected(index, category)
+                                onCategorySelected(0, categories[0])
                             }
                             .shadow(
-                                elevation = if (isSelected) 8.dp else 2.dp,
+                                elevation = if (isTodasSelected) 8.dp else 2.dp,
                                 shape = RoundedCornerShape(16.dp),
-                                ambientColor = if (isSelected) primaryGreen.copy(alpha = 0.2f) else Color.Gray.copy(alpha = 0.1f)
+                                ambientColor = if (isTodasSelected) primaryGreen.copy(alpha = 0.2f) else Color.Gray.copy(alpha = 0.1f)
                             ),
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) {
+                            containerColor = if (isTodasSelected) {
                                 primaryGreen
                             } else {
                                 Color(0xFFF5F5F5)
@@ -299,19 +300,117 @@ private fun HomeContent(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 16.dp, horizontal = 12.dp),
+                                .padding(vertical = 16.dp, horizontal = 8.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = category,
-                                color = if (isSelected) Color.White else textPrimary,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                fontSize = 14.sp
+                                text = categories[0], // "Todas"
+                                color = if (isTodasSelected) Color.White else textPrimary,
+                                fontWeight = if (isTodasSelected) FontWeight.Bold else FontWeight.Medium,
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
+                    
+                    // Resto de categorías en LazyRow scrolleable
+                    LazyRow(
+                        modifier = Modifier
+                            .weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) {
+                        items(categories.size - 1) { index ->
+                            val categoryIndex = index + 1 // +1 porque empezamos desde la segunda categoría
+                            val category = categories[categoryIndex]
+                            val isSelected = selectedCategoryIndex == categoryIndex
+                            Card(
+                                modifier = Modifier
+                                    .width(120.dp)
+                                    .clickable { 
+                                        onCategorySelected(categoryIndex, category)
+                                    }
+                                    .shadow(
+                                        elevation = if (isSelected) 8.dp else 2.dp,
+                                        shape = RoundedCornerShape(16.dp),
+                                        ambientColor = if (isSelected) primaryGreen.copy(alpha = 0.2f) else Color.Gray.copy(alpha = 0.1f)
+                                    ),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSelected) {
+                                        primaryGreen
+                                    } else {
+                                        Color(0xFFF5F5F5)
+                                    }
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp, horizontal = 12.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = category,
+                                        color = if (isSelected) Color.White else textPrimary,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        fontSize = 14.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
-            }        }        // Filtrar experiencias localmente basado en categoría seleccionada
+            } else {
+                // Si hay 3 o menos categorías, usar Row normal
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    categories.forEachIndexed { index, category ->
+                        val isSelected = selectedCategoryIndex == index
+                        Card(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { 
+                                    onCategorySelected(index, category)
+                                }
+                                .shadow(
+                                    elevation = if (isSelected) 8.dp else 2.dp,
+                                    shape = RoundedCornerShape(16.dp),
+                                    ambientColor = if (isSelected) primaryGreen.copy(alpha = 0.2f) else Color.Gray.copy(alpha = 0.1f)
+                                ),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected) {
+                                    primaryGreen
+                                } else {
+                                    Color(0xFFF5F5F5)
+                                }
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp, horizontal = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = category,
+                                    color = if (isSelected) Color.White else textPrimary,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }}        // Filtrar experiencias localmente basado en categoría seleccionada
         val selectedCategory = if (selectedCategoryIndex == 0) null else categories[selectedCategoryIndex]
         
         val filteredPopularExperiences = if (selectedCategory != null) {

@@ -306,14 +306,13 @@ class HomeRepository(
                 price = 28000.0,
                 duration = 5.0,
                 category = "Clases",
-                images = listOf("https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400"),
-                requirements = "Ropa cómoda y delantal",
+                images = listOf("https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400"),                requirements = "Ropa cómoda y delantal",
                 status = "Activa",
                 chef = "chef4",
                 createdAt = "2024-01-04T10:00:00Z"
             )
         )
-          return Result.success(mockExperiences)
+        return Result.success(mockExperiences)
     }
 
     private suspend fun getUpcomingExperiencesMockup(): Result<List<Experience>> {

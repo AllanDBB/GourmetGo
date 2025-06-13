@@ -11,11 +11,10 @@ import gourmetgo.client.data.localStorage.SharedPrefsManager
 class MyExperiencesChefRepository(
     private val apiService: ApiService,
     private val sprefsManager: SharedPrefsManager
-) {
-    suspend fun getAllMyExperiences(): Result<List<Experience>> {
+) {    suspend fun getAllMyExperiences(): Result<List<Experience>> {
         Log.d("MyExperiencesChefRepository", "Entrando a getAllMyExperiences")
         val chef = sprefsManager.getChef()
-            Log.d("MyExperiencesChefRepository", "Chef from SharedPrefs: $chef")
+        Log.d("MyExperiencesChefRepository", "Chef from SharedPrefs: $chef")
         val id = chef?._id ?: run {
             Log.e("MyExperiencesChefRepository", "User ID is null in SharedPrefs")
             return Result.failure(Exception("Usuario no encontrado en SharedPrefs"))

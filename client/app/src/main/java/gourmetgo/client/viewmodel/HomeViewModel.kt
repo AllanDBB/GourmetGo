@@ -159,7 +159,9 @@ class HomeViewModel(
                 }
             }
         }
-    }    fun filterByCategory(category: String) {
+    }    
+    
+    fun filterByCategory(category: String) {
         viewModelScope.launch {
             try {
                 uiState = uiState.copy(
@@ -168,12 +170,6 @@ class HomeViewModel(
                     searchQuery = "",
                     error = null
                 )
-
-                if (AppConfig.ENABLE_LOGGING) {
-                    Log.d("HomeViewModel", "🔍 STARTING FILTER: Filtering by category: $category")
-                    Log.d("HomeViewModel", "🔍 Current popular experiences before filter: ${uiState.popularExperiences.size}")
-                    Log.d("HomeViewModel", "🔍 Current upcoming experiences before filter: ${uiState.upcomingExperiences.size}")
-                }
 
                 val categoryResult = repository.getExperiencesByCategory(category)
 
