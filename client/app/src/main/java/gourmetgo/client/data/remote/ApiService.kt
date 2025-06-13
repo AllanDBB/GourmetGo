@@ -21,12 +21,14 @@ import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.models.dtos.UpdateUserResponse
 import gourmetgo.client.data.models.dtos.UpdateExperienceRequest
 import gourmetgo.client.data.models.dtos.AssistanceResponse
+import gourmetgo.client.data.models.dtos.DeleteExperienceRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PUT
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.DELETE
 
 interface ApiService {
 
@@ -92,5 +94,17 @@ interface ApiService {
         @Path("id") id: String
     ): List<AssistanceResponse>
 
+    @POST("experiences/{id}/request-delete")
+    suspend fun requestExperienceDelete(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body request: String
+    ): String
 
+    @DELETE("experiences/{id}/")
+    suspend fun deleteExperience(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body request: DeleteExperienceRequest
+    ): String
 }

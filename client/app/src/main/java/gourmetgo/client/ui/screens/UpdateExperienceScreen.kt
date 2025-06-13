@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gourmetgo.client.viewmodel.UpdateExperienceViewModel
+import gourmetgo.client.viewmodel.DeleteExperienceViewModel
 import gourmetgo.client.ui.components.ProfileTextField
 import java.util.Calendar
 import androidx.compose.material3.TextFieldDefaults
@@ -38,7 +39,8 @@ fun UpdateExperienceScreen(
     viewModel: UpdateExperienceViewModel,
     onNavigateBack: () -> Unit,
     onDelete: () -> Unit,
-    onUpdateSuccess: () -> Unit
+    onUpdateSuccess: () -> Unit,
+    deleteExperienceViewModel: DeleteExperienceViewModel // <-- Add this parameter
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
@@ -53,6 +55,13 @@ fun UpdateExperienceScreen(
     var location by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    val deleteUiState = deleteExperienceViewModel.uiState
+    var showDeleteEmailDialog by remember { mutableStateOf(false) }
+    var showDeleteCodeDialog by remember { mutableStateOf(false) }
+    var deleteEmail by remember { mutableStateOf("") }
+    var deleteCode by remember { mutableStateOf("") }
+    var localDeleteError by remember { mutableStateOf<String?>(null) }
+    var deleteSuccess by remember { mutableStateOf(false) }
 
     val calendar = remember { Calendar.getInstance() }
 
@@ -112,6 +121,30 @@ fun UpdateExperienceScreen(
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
             Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // Show error toast for delete flow
+    LaunchedEffect(deleteUiState.error) {
+        deleteUiState.error?.let {
+            localDeleteError = it
+        }
+    }
+
+    // Show code dialog after email request success
+    LaunchedEffect(deleteUiState.isLoading) {
+        if (!deleteUiState.isLoading && showDeleteEmailDialog && localDeleteError == null && deleteEmail.isNotBlank()) {
+            showDeleteEmailDialog = false
+            showDeleteCodeDialog = true
+        }
+    }
+
+    // Handle delete success (no error, not loading, after code submit)
+    LaunchedEffect(deleteUiState, deleteSuccess) {
+        if (!deleteUiState.isLoading && localDeleteError == null && deleteSuccess) {
+            Toast.makeText(context, "Experiencia eliminada", Toast.LENGTH_SHORT).show()
+            showDeleteCodeDialog = false
+            onDelete()
         }
     }
 
@@ -268,7 +301,7 @@ fun UpdateExperienceScreen(
                     val newCapacity = capacity.toIntOrNull() ?: 0
                     val newPrice = price.toDoubleOrNull() ?: 0.0
 
-                    
+
                     val isLocationUrl = android.util.Patterns.WEB_URL.matcher(location).matches()
 
                     when {
@@ -326,8 +359,8 @@ fun UpdateExperienceScreen(
             Spacer(modifier = Modifier.height(16.dp))
             if (status != "Agotada") {
                 OutlinedButton(
-                    onClick = onDelete,
-                    enabled = !uiState.isLoading,
+                    onClick = { showDeleteEmailDialog = true },
+                    enabled = !uiState.isLoading && !deleteUiState.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(44.dp),
@@ -339,6 +372,93 @@ fun UpdateExperienceScreen(
             }
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+    // --- Delete Email Dialog ---
+    if (showDeleteEmailDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteEmailDialog = false; deleteEmail = ""; localDeleteError = null },
+            title = { Text("¿Eliminar experiencia?") },
+            text = {
+                Column {
+                    Text("Esta acción es permanente. Ingresa tu correo para continuar.", color = MaterialTheme.colorScheme.error)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = deleteEmail,
+                        onValueChange = { deleteEmail = it },
+                        label = { Text("Correo electrónico") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        isError = localDeleteError != null,
+                        supportingText = localDeleteError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        localDeleteError = null
+                        if (deleteEmail.isBlank()) {
+                            localDeleteError = "El correo es obligatorio"
+                        } else {
+                            deleteExperienceViewModel.RequestDeleteExperience(deleteEmail)
+                        }
+                    },
+                    enabled = !deleteUiState.isLoading
+                ) {
+                    if (deleteUiState.isLoading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    else Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteEmailDialog = false; deleteEmail = ""; localDeleteError = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+    // --- Delete Code Dialog ---
+    if (showDeleteCodeDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteCodeDialog = false; deleteCode = ""; localDeleteError = null },
+            title = { Text("Verificación de eliminación") },
+            text = {
+                Column {
+                    Text("Ingresa el código de verificación enviado a tu correo.")
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = deleteCode,
+                        onValueChange = { deleteCode = it },
+                        label = { Text("Código de verificación") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        isError = localDeleteError != null,
+                        supportingText = localDeleteError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        localDeleteError = null
+                        if (deleteCode.isBlank()) {
+                            localDeleteError = "El código es obligatorio"
+                        } else {
+                            deleteSuccess = true
+                            deleteExperienceViewModel.DeleteExperience(deleteCode)
+                        }
+                    },
+                    enabled = !deleteUiState.isLoading
+                ) {
+                    if (deleteUiState.isLoading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    else Text("Eliminar definitivamente")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteCodeDialog = false; deleteCode = ""; localDeleteError = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 

@@ -42,6 +42,8 @@ import gourmetgo.client.viewmodel.RegisterUserViewModel
 import gourmetgo.client.viewmodel.RegisterChefViewModel
 import gourmetgo.client.viewmodel.factories.RegisterUserViewModelFactory
 import gourmetgo.client.viewmodel.factories.RegisterChefViewModelFactory
+import gourmetgo.client.viewmodel.DeleteExperienceViewModel
+import gourmetgo.client.viewmodel.factories.DeleteExperienceViewModelFactory
 
 
 @Composable
@@ -86,7 +88,7 @@ fun MainNavigation(
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
-                    navController.navigate("experiences") {
+                    navController.navigate("my_experiences_chef") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
@@ -233,20 +235,25 @@ fun MainNavigation(
             val updateExperienceViewModel: UpdateExperienceViewModel = viewModel(
                 factory = UpdateExperienceViewModelFactory(context, experienceId)
             )
+            val deleteExperienceViewModel: DeleteExperienceViewModel = viewModel(
+                factory = DeleteExperienceViewModelFactory(context, experienceId)
+            )
             UpdateExperienceScreen(
                 viewModel = updateExperienceViewModel,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
+                onNavigateBack = { navController.popBackStack() },
                 onDelete = {
-                    // Handle delete action
+                    navController.navigate("my_experiences_chef") {
+                        popUpTo("edit_experience/{id}") { inclusive = true }
+                        launchSingleTop = true
+                    }
                 },
                 onUpdateSuccess = {
                     navController.navigate("my_experiences_chef") {
                         popUpTo("edit_experience/{id}") { inclusive = true }
                         launchSingleTop = true
                     }
-                }
+                },
+                deleteExperienceViewModel = deleteExperienceViewModel
             )
         }
     
