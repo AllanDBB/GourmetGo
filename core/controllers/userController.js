@@ -36,10 +36,12 @@ exports.getMyProfile = async (req, res) => {
       if (chefProfile) {
         const chefData = {
           ...user.toObject(),
-          contactPerson: chefProfile.contactPerson,
-          bio: chefProfile.bio,
-          experience: chefProfile.experience,
-          socialLinks: chefProfile.socialLinks
+          contactPerson: chefProfile.contactPerson || '',
+          bio: chefProfile.bio || '',
+          experience: chefProfile.experience || '',
+          socialLinks: chefProfile.socialLinks || [],
+          location: user.location || '',
+          preferences: user.preferences || []
         };
         return res.json(chefData);
       }
