@@ -26,6 +26,8 @@ import retrofit2.http.PUT
 import retrofit2.http.POST
 import retrofit2.http.Path
 
+import retrofit2.http.Query
+
 interface ApiService {
 
     @POST("auth/login")
@@ -37,7 +39,12 @@ interface ApiService {
     @POST("auth/register-chef")
     suspend fun registerChef(@Body request: RegisterChefRequest): RegisterChefResponse
 
+    // Home Screen endpoints
+    @GET("experiences")
+    suspend fun listExperiences(): List<Experience>
 
+    @GET("experiences")
+    suspend fun listExperiencesWithSearch(@Query("q") query: String): List<Experience>
 
     @GET("experiences")
     suspend fun getExperiences(): ExperiencesResponse
