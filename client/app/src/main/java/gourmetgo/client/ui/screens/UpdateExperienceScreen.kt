@@ -380,7 +380,7 @@ fun UpdateExperienceScreen(
             title = { Text("¿Eliminar experiencia?") },
             text = {
                 Column {
-                    Text("Esta acción es permanente. Ingresa tu correo para continuar.", color = MaterialTheme.colorScheme.error)
+                    Text("Esta acción es permanente y se perderán todos los datos asociados. Ingresa tu correo para continuar.", color = MaterialTheme.colorScheme.error)
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = deleteEmail,
