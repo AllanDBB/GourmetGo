@@ -14,6 +14,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,8 +40,11 @@ fun HomeScreen(
     onGoToExperiences: () -> Unit = {},
     onNavigateToExperienceDetails: (String) -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onLogout: () -> Unit = {}
-) {    val context = LocalContext.current
+    onNavigateToHistory: () -> Unit = {},
+    onLogout: () -> Unit = {},
+    currentNavIndex: Int = 0,
+    onNavIndexChanged: (Int) -> Unit = {}
+) {val context = LocalContext.current
     val uiState = viewModel.uiState
     
     var searchText by remember { mutableStateOf("") }
@@ -90,8 +96,7 @@ fun HomeScreen(
         }
         return
     }
-    
-    Box(
+      Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
@@ -102,11 +107,11 @@ fun HomeScreen(
                     )
                 )
             )
-    ) {
-        Column(
+    ) {        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(bottom = 85.dp) // Ajustado para coincidir con la altura del navbar
         ) {
             // Top Bar con navegación
             TopAppBar(
@@ -163,12 +168,30 @@ fun HomeScreen(
                         lightGreen = lightGreen,
                         accentGreen = accentGreen,
                         cardBackground = cardBackground,
-                        textPrimary = textPrimary,
-                        textSecondary = textSecondary
+                        textPrimary = textPrimary,                        textSecondary = textSecondary
                     )
                 }
             }
         }
+          // Bottom Navigation Bar
+        BottomNavigationBar(
+            currentIndex = currentNavIndex,
+            onNavIndexChanged = onNavIndexChanged,
+            onNavigateToHome = { 
+                println("DEBUG: Click en Inicio")
+                // Ya estamos en home, pero actualizamos el estado
+            },
+            onNavigateToHistory = {
+                println("DEBUG: Click en Historial")
+                onNavigateToHistory()
+            },
+            onNavigateToProfile = {
+                println("DEBUG: Click en Perfil")
+                onNavigateToProfile()
+            },
+            primaryColor = primaryGreen,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
@@ -680,30 +703,7 @@ private fun TopAppBar(
             // Action buttons with better design
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Profile button
-                Card(
-                    modifier = Modifier.size(40.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF2E7D32).copy(alpha = 0.1f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    IconButton(
-                        onClick = onNavigateToProfile,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Icon(
-                            painter = painterResource(id = android.R.drawable.ic_menu_myplaces),
-                            contentDescription = "Perfil",
-                            tint = Color(0xFF2E7D32),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-                
+                verticalAlignment = Alignment.CenterVertically            ) {
                 // Logout button
                 Card(
                     modifier = Modifier.size(40.dp),
@@ -1042,5 +1042,162 @@ fun EnhancedExperienceCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun BottomNavigationBar(
+    currentIndex: Int,
+    onNavIndexChanged: (Int) -> Unit,
+    onNavigateToHome: () -> Unit,
+    onNavigateToHistory: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    primaryColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(85.dp),
+        color = Color.White,
+        shadowElevation = 12.dp,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {            // Inicio
+            EnhancedBottomNavItem(
+                icon = Icons.Default.Home,
+                label = "Inicio",
+                isSelected = currentIndex == 0,
+                onClick = {
+                    println("DEBUG: EnhancedBottomNavItem - Inicio clicked")
+                    onNavIndexChanged(0)
+                    onNavigateToHome()
+                },
+                primaryColor = primaryColor
+            )
+            
+            // Historial
+            EnhancedBottomNavItem(
+                icon = Icons.Default.History,
+                label = "Historial",
+                isSelected = currentIndex == 1,
+                onClick = {
+                    println("DEBUG: EnhancedBottomNavItem - Historial clicked")
+                    onNavIndexChanged(1)
+                    onNavigateToHistory()
+                },
+                primaryColor = primaryColor
+            )
+            
+            // Perfil
+            EnhancedBottomNavItem(
+                icon = Icons.Default.Person,
+                label = "Perfil",
+                isSelected = currentIndex == 2,
+                onClick = {
+                    println("DEBUG: EnhancedBottomNavItem - Perfil clicked")
+                    onNavIndexChanged(2)
+                    onNavigateToProfile()
+                },
+                primaryColor = primaryColor
+            )
+        }
+    }
+}
+
+@Composable
+private fun EnhancedBottomNavItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    primaryColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .clickable { 
+                println("DEBUG: Item $label clicked")
+                onClick() 
+            }
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = if (isSelected) primaryColor else Color(0xFF9E9E9E),
+            modifier = Modifier.size(24.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (isSelected) primaryColor else Color(0xFF9E9E9E),
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(2.dp))
+        
+        // Indicador simple
+        Box(
+            modifier = Modifier
+                .width(6.dp)
+                .height(2.dp)
+                .background(
+                    color = if (isSelected) primaryColor else Color.Transparent,
+                    shape = RoundedCornerShape(1.dp)
+                )
+        )
+    }
+}
+
+@Composable
+private fun BottomNavItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    primaryColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(
+                    color = if (isSelected) primaryColor.copy(alpha = 0.1f) else Color.Transparent,
+                    shape = RoundedCornerShape(16.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (isSelected) primaryColor else Color(0xFF757575),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (isSelected) primaryColor else Color(0xFF757575)
+        )
     }
 }
