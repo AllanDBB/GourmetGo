@@ -32,7 +32,6 @@ class RatingRepository(
                 comment = comment
             )
 
-            Log.d("RatingRepository", "Creating rating for experience: $experienceId with score: $score")
             val response = apiService.createRating("Bearer $token", request)
 
             if (AppConfig.ENABLE_LOGGING) {

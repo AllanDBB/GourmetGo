@@ -542,7 +542,16 @@ fun EnhancedBookingHistoryCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Botones de acción
-            if (booking.status == "attended") {
+            val isPastBooking = try {
+                val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                sdf.timeZone = TimeZone.getTimeZone("UTC")
+                val expDate = sdf.parse(booking.experience.date)
+                expDate != null && expDate.before(Calendar.getInstance().time)
+            } catch (e: Exception) {
+                false
+            }
+
+            if (booking.status == "confirmed" && isPastBooking) {
                 // Mostrar botones de calificar y descargar PDF lado a lado
                 Row(
                     modifier = Modifier.fillMaxWidth(),

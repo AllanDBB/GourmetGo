@@ -187,10 +187,7 @@ fun MainNavigation(
                     navController.popBackStack()
                 },
                 onNavigateToRating = { booking ->
-                    val gson = Gson()
-                    val bookingJson = gson.toJson(booking)
-                    val encodedJson = URLEncoder.encode(bookingJson, StandardCharsets.UTF_8.toString())
-                    navController.navigate("rating/$encodedJson")
+                    navController.navigate("rating/${booking.experience._id}")
                 }
             )
         }

@@ -36,7 +36,7 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit = {}
 
 ) {
-    var email by remember { mutableStateOf("Nataliaorozcodelgado@gmail.com") }
+    var email by remember { mutableStateOf("te@email.com") }
     var password by remember { mutableStateOf("abcdeF.1234") }
     var passwordVisible by remember { mutableStateOf(false) }
 
