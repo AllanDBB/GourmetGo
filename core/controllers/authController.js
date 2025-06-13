@@ -3,7 +3,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const chefController = require('./chefController');
 const mailer = require('../utils/mailer');
+const recoveryCodes = new Map();
 const { validateUserRegistration, validateChefRegistration } = require('../utils/validators');
+const { generateDeleteCode } = require('../utils/deleteCodeGenerator');
 
 // Normal user registration
 exports.registerUser = async (req, res) => {
@@ -161,7 +163,7 @@ exports.refresh = (req, res) => {
 };
 
 
-exports.recoverPassword = async (req, res) => {
+exports.passwordRecovery = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: 'Por favor, proporciona un correo electrónico.' });
@@ -169,46 +171,50 @@ exports.recoverPassword = async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
 
-    const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
+    const recoveryCode = generateDeleteCode();
+    recoveryCodes.set(user._id.toString(), recoveryCode);
     await mailer.sendMailTemplate(
       user.email,
-      'Recuperación de contraseña',
-      'recover-password.html',
+      'Código de recuperación de contraseña',
+      'recovery-code.html',
       {
-        name: user.name,
-        resetUrl,
-        year: new Date().getFullYear()
+        recoveryCode
       }
     );
 
-    res.json({ message: 'Correo de recuperación enviado.' });
-  }
-  catch (err) {
-    res.status(500).json({ message: 'Error al recuperar la contraseña.', error: err.message });
+    res.json({ message: 'Código de recuperación enviado al correo.' });
+
+  } catch (err) {
+    res.status(500).json({ message: 'Error al enviar el código de recuperación.', error: err.message });
   }
 }
 
-exports.passwordReset = async (req, res) => {
+exports.resetPassword = async (req, res) => {
   try {
-    const token = req.body.token;
-    const { newPassword } = req.body;
-    if (!token || !newPassword) {
-      return res.status(400).json({ message: 'Token y nueva contraseña son requeridos.' });
+    const { userId, recoveryCode, newPassword } = req.body;
+    if (!userId || !recoveryCode || !newPassword) {
+      return res.status(400).json({ message: 'Por favor, proporciona el ID de usuario, el código de recuperación y la nueva contraseña.' });
     }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-    const user = await User.findById(decoded.userId);
-    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    user.password = hashedPassword;
-    await user.save();
+    const storedCode = recoveryCodes.get(userId.toString());
+    if (!storedCode || storedCode !== recoveryCode) {
+      return res.status(400).json({ message: 'Código de recuperación inválido.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await User.findByIdAndUpdate(userId, { password: hashedPassword });
+
+    // Eliminar el código de recuperación después de usarlo
+    recoveryCodes.delete(userId.toString());
+
     res.json({ message: 'Contraseña actualizada exitosamente.' });
   } catch (err) {
-    res.status(500).json({ message: 'Error al actualizar la contraseña.', error: err.message });
+    res.status(500).json({ message: 'Error al restablecer la contraseña.', error: err.message });
   }
 }
+
+    
+
 
 
 
