@@ -11,16 +11,18 @@ import gourmetgo.client.data.models.Experience
 import gourmetgo.client.data.models.Booking
 import gourmetgo.client.data.models.dtos.BookingRequest
 import gourmetgo.client.data.models.dtos.BookingResponse
+import gourmetgo.client.data.models.dtos.BookingSummary
 import gourmetgo.client.data.models.dtos.LoginRequest
 import gourmetgo.client.data.models.dtos.LoginResponse
 import gourmetgo.client.data.models.dtos.ExperiencesResponse
-import gourmetgo.client.data.models.dtos.MyBookingsResponse
 import gourmetgo.client.data.models.dtos.UpdateChefRequest
 import gourmetgo.client.data.models.dtos.UpdateChefResponse
 import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.models.dtos.UpdateUserResponse
 import gourmetgo.client.data.models.dtos.UpdateExperienceRequest
 import gourmetgo.client.data.models.dtos.AssistanceResponse
+import gourmetgo.client.data.models.dtos.RatingRequest
+import gourmetgo.client.data.models.dtos.RatingResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -38,8 +40,6 @@ interface ApiService {
 
     @POST("auth/register-chef")
     suspend fun registerChef(@Body request: RegisterChefRequest): RegisterChefResponse
-
-
 
     @GET("experiences")
     suspend fun getExperiences(): ExperiencesResponse
@@ -77,7 +77,7 @@ interface ApiService {
     @GET("bookings/my")
     suspend fun getMyBookings(
         @Header("Authorization") token: String
-    ): MyBookingsResponse
+    ): List<BookingSummary>
 
     @PUT("experiences/{id}")
     suspend fun updateExperience(
@@ -92,5 +92,9 @@ interface ApiService {
         @Path("id") id: String
     ): List<AssistanceResponse>
 
-
+    @POST("ratings")
+    suspend fun createRating(
+        @Header("Authorization") token: String,
+        @Body request: RatingRequest
+    ): RatingResponse
 }

@@ -6,6 +6,7 @@ import gourmetgo.client.data.localStorage.SharedPrefsManager
 import gourmetgo.client.data.models.Booking
 import gourmetgo.client.data.models.Experience
 import gourmetgo.client.data.models.dtos.BookingRequest
+import gourmetgo.client.data.models.dtos.BookingSummary
 import gourmetgo.client.data.remote.ApiService
 
 class BookingRepository(
@@ -57,7 +58,7 @@ class BookingRepository(
         }
     }
 
-    suspend fun getMyBookings(): Result<List<Booking>> {
+    suspend fun getMyBookings(): Result<List<BookingSummary>> {
         return try {
             val token = sharedPrefs.getToken()
             if (token == null) {
@@ -67,13 +68,14 @@ class BookingRepository(
                 return Result.failure(Exception("User not authenticated"))
             }
 
-            val response = apiService.getMyBookings("Bearer $token")
+            // Ahora recibimos directamente el array de bookings
+            val bookings = apiService.getMyBookings("Bearer $token")
 
             if (AppConfig.ENABLE_LOGGING) {
-                Log.d("BookingRepository", "Retrieved ${response.bookings.size} bookings")
+                Log.d("BookingRepository", "Retrieved ${bookings.size} bookings")
             }
 
-            Result.success(response.bookings)
+            Result.success(bookings)
 
         } catch (e: Exception) {
             if (AppConfig.ENABLE_LOGGING) {
