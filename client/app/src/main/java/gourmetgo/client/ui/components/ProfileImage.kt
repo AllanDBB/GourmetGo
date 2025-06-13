@@ -71,7 +71,7 @@ fun ProfileImage(
         val image = File(context.filesDir, "camera_photo_${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(
             context,
-            "${context.packageName}.fileprovider",
+            "gourmetgo.client.fileprovider",
             image
         )
     }

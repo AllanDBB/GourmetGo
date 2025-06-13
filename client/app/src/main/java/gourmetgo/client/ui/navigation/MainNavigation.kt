@@ -46,9 +46,7 @@ import gourmetgo.client.viewmodel.RegisterUserViewModel
 import gourmetgo.client.viewmodel.RegisterChefViewModel
 import gourmetgo.client.viewmodel.factories.RegisterUserViewModelFactory
 import gourmetgo.client.viewmodel.factories.RegisterChefViewModelFactory
-import com.google.gson.Gson
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+
 
 @Composable
 fun MainNavigation(
@@ -90,7 +88,7 @@ fun MainNavigation(
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
-                    navController.navigate("booking_history") {
+                    navController.navigate("experiences") {
                         popUpTo("login") { inclusive = true }
                     }
                 },

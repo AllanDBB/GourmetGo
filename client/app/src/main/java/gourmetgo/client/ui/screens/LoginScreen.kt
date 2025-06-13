@@ -36,8 +36,8 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit = {}
 
 ) {
-    var email by remember { mutableStateOf("te@email.com") }
-    var password by remember { mutableStateOf("abcdeF.1234") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
