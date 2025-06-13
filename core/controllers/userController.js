@@ -1,4 +1,5 @@
 const User = require('../models/userSchema');
+const ChefProfile = require('../models/chefProfileSchema');
 const { validateUserUpdate } = require('../utils/validators');
 
 exports.updateMe = async (req, res) => {
@@ -29,6 +30,21 @@ exports.getMyProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select('-password');
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+    if (user.role === 'chef') {
+      const chefProfile = await ChefProfile.findOne({ user: user._id });
+      if (chefProfile) {
+        const chefData = {
+          ...user.toObject(),
+          contactPerson: chefProfile.contactPerson,
+          bio: chefProfile.bio,
+          experience: chefProfile.experience,
+          socialLinks: chefProfile.socialLinks
+        };
+        return res.json(chefData);
+      }
+    }
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: 'Error al obtener el perfil.', error: err.message });
