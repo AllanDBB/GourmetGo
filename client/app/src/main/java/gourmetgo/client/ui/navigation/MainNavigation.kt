@@ -46,6 +46,8 @@ import gourmetgo.client.viewmodel.RegisterUserViewModel
 import gourmetgo.client.viewmodel.RegisterChefViewModel
 import gourmetgo.client.viewmodel.factories.RegisterUserViewModelFactory
 import gourmetgo.client.viewmodel.factories.RegisterChefViewModelFactory
+import gourmetgo.client.viewmodel.DeleteExperienceViewModel
+import gourmetgo.client.viewmodel.factories.DeleteExperienceViewModelFactory
 
 
 @Composable
@@ -77,7 +79,11 @@ fun MainNavigation(
         authViewModel.checkLoginStatus()
     }
 
-    val startDestination = if (authViewModel.uiState.isLoggedIn) "experiences" else "login"
+    val startDestination = when (authViewModel.uiState.userType) {
+        "chef" -> "my_experiences_chef"
+        "user" -> "experiences"
+        else -> if (authViewModel.uiState.isLoggedIn) "experiences" else "login"
+    }
 
     NavHost(
         navController = navController,
@@ -88,8 +94,16 @@ fun MainNavigation(
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
-                    navController.navigate("experiences") {
-                        popUpTo("login") { inclusive = true }
+                    when (authViewModel.uiState.userType) {
+                        "chef" -> navController.navigate("my_experiences_chef") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                        "user" -> navController.navigate("experiences") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                        else -> navController.navigate("experiences") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 },
                 onNavigateToRegister = {
@@ -248,6 +262,18 @@ fun MainNavigation(
                 },
                 onNavigateToAssistance = { id ->
                     navController.navigate("assistance/$id")
+                },
+                onNavigateToProfile = {
+                    navController.navigate("edit_profile") {
+                        launchSingleTop = true
+                    }
+                },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -273,20 +299,25 @@ fun MainNavigation(
             val updateExperienceViewModel: UpdateExperienceViewModel = viewModel(
                 factory = UpdateExperienceViewModelFactory(context, experienceId)
             )
+            val deleteExperienceViewModel: DeleteExperienceViewModel = viewModel(
+                factory = DeleteExperienceViewModelFactory(context, experienceId)
+            )
             UpdateExperienceScreen(
                 viewModel = updateExperienceViewModel,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
+                onNavigateBack = { navController.popBackStack() },
                 onDelete = {
-                    // Handle delete action
+                    navController.navigate("my_experiences_chef") {
+                        popUpTo("edit_experience/{id}") { inclusive = true }
+                        launchSingleTop = true
+                    }
                 },
                 onUpdateSuccess = {
                     navController.navigate("my_experiences_chef") {
                         popUpTo("edit_experience/{id}") { inclusive = true }
                         launchSingleTop = true
                     }
-                }
+                },
+                deleteExperienceViewModel = deleteExperienceViewModel
             )
         }
 
