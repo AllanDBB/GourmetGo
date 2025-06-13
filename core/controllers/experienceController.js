@@ -4,6 +4,7 @@ const ChefProfile = require('../models/chefProfileSchema');
 const mailer = require('../utils/mailer');
 const deleteCodes = new Map();
 const User = require('../models/userSchema');
+const Booking = require('../models/bookingSchema');
 
 exports.createExperience = async (req, res) => {
   try {
