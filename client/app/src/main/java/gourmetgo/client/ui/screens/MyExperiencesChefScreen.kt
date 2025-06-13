@@ -27,7 +27,9 @@ fun MyExperiencesChefScreen(
     viewModel: MyExperiencesChefViewModel,
     onNavigateToCreate: () -> Unit,
     onNavigateToExperienceDetails: (String) -> Unit,
-    onNavigateToAssistance: (String) -> Unit
+    onNavigateToAssistance: (String) -> Unit,
+    onNavigateToProfile: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
@@ -58,6 +60,22 @@ fun MyExperiencesChefScreen(
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 20.sp
                     )
+                    Row {
+                        IconButton(onClick = onNavigateToProfile) {
+                            Icon(
+                                Icons.Default.AccountCircle,
+                                contentDescription = "Perfil",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                        IconButton(onClick = onLogout) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ExitToApp,
+                                contentDescription = "Cerrar Sesión",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
                 }
             }
         },

@@ -79,7 +79,11 @@ fun MainNavigation(
         authViewModel.checkLoginStatus()
     }
 
-    val startDestination = if (authViewModel.uiState.isLoggedIn) "experiences" else "login"
+    val startDestination = when (authViewModel.uiState.userType) {
+        "chef" -> "my_experiences_chef"
+        "user" -> "experiences"
+        else -> if (authViewModel.uiState.isLoggedIn) "experiences" else "login"
+    }
 
     NavHost(
         navController = navController,
@@ -90,8 +94,16 @@ fun MainNavigation(
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
-                    navController.navigate("my_experiences_chef") {
-                        popUpTo("login") { inclusive = true }
+                    when (authViewModel.uiState.userType) {
+                        "chef" -> navController.navigate("my_experiences_chef") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                        "user" -> navController.navigate("experiences") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                        else -> navController.navigate("experiences") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 },
                 onNavigateToRegister = {
@@ -250,6 +262,18 @@ fun MainNavigation(
                 },
                 onNavigateToAssistance = { id ->
                     navController.navigate("assistance/$id")
+                },
+                onNavigateToProfile = {
+                    navController.navigate("edit_profile") {
+                        launchSingleTop = true
+                    }
+                },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
