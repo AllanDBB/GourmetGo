@@ -485,10 +485,6 @@ private fun HomeContent(
                             contentColor = lightGreen
                         )
                     ) {
-                        Text(
-                            "Ver todos",
-                            fontWeight = FontWeight.SemiBold
-                        )
                     }                }
                 
                 LazyRow(
@@ -528,10 +524,6 @@ private fun HomeContent(
                             contentColor = lightGreen
                         )
                     ) {
-                        Text(
-                            "Ver todos",
-                            fontWeight = FontWeight.SemiBold
-                        )
                     }
                 }
                   LazyRow(
@@ -673,14 +665,6 @@ private fun TopAppBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Logo icon
-                    Icon(
-                        painter = painterResource(id = android.R.drawable.ic_menu_gallery),
-                        contentDescription = "GourmetGo Logo",
-                        tint = Color(0xFF2E7D32),
-                        modifier = Modifier.size(32.dp)
-                    )
-                    
                     Column {
                         Text(
                             text = if (showingAllExperiences) "Todas las Experiencias" else "GourmetGo",
