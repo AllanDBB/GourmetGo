@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gourmetgo.client.utils.BookingHistoryUtils
 import gourmetgo.client.viewmodel.RatingViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun RatingScreen(
@@ -47,7 +48,7 @@ fun RatingScreen(
 
     LaunchedEffect(uiState.ratingSuccess) {
         if (uiState.ratingSuccess) {
-            Toast.makeText(context, "¡Calificación enviada exitosamente!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "¡Reseña enviada exitosamente! 🌟 Gracias por tu opinión", Toast.LENGTH_LONG).show()
             onRatingSuccess()
         }
     }

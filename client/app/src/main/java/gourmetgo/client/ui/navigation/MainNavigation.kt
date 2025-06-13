@@ -245,9 +245,9 @@ fun MainNavigation(
                 viewModel = ratingViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
-                },
-                onRatingSuccess = {
-                    navController.navigate("experiences") {
+                },                onRatingSuccess = {
+                    // Navegar al menú principal (home) después de una reseña exitosa
+                    navController.navigate("home") {
                         popUpTo("rating/{experienceId}") { inclusive = true }
                         launchSingleTop = true
                     }
