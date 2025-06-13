@@ -13,12 +13,18 @@ import androidx.navigation.navArgument
 import gourmetgo.client.ui.screens.EditProfileScreen
 import gourmetgo.client.ui.screens.LoginScreen
 import gourmetgo.client.ui.screens.ExperiencesScreen
+import gourmetgo.client.ui.screens.BookingHistoryScreen
+import gourmetgo.client.ui.screens.RatingScreen
 import gourmetgo.client.viewmodel.AuthViewModel
 import gourmetgo.client.viewmodel.ExperiencesViewModel
 import gourmetgo.client.viewmodel.ProfileViewModel
+import gourmetgo.client.viewmodel.BookingHistoryViewModel
+import gourmetgo.client.viewmodel.RatingViewModel
 import gourmetgo.client.viewmodel.factories.AuthViewModelFactory
 import gourmetgo.client.viewmodel.factories.ExperiencesViewModelFactory
 import gourmetgo.client.viewmodel.factories.ProfileViewModelFactory
+import gourmetgo.client.viewmodel.factories.BookingHistoryViewModelFactory
+import gourmetgo.client.viewmodel.factories.RatingViewModelFactory
 import gourmetgo.client.ui.screens.BookExperienceScreen
 import gourmetgo.client.viewmodel.BookingViewModel
 import gourmetgo.client.viewmodel.factories.BookingViewModelFactory
@@ -34,8 +40,6 @@ import gourmetgo.client.viewmodel.UpdateExperienceViewModel
 import gourmetgo.client.viewmodel.ViewAssistanceViewModel
 import gourmetgo.client.viewmodel.factories.ViewAssistanceViewModelFactory
 import gourmetgo.client.ui.screens.ViewAssistanceScreen
-
-
 import gourmetgo.client.ui.screens.RegisterUserScreen
 import gourmetgo.client.ui.screens.RegisterChefScreen
 import gourmetgo.client.viewmodel.RegisterUserViewModel
@@ -64,14 +68,12 @@ fun MainNavigation(
         factory = UpdateExperienceViewModelFactory(context, "")
     )
 
-
     val registerUserViewModel: RegisterUserViewModel = viewModel(
         factory = RegisterUserViewModelFactory(context)
     )
     val registerChefViewModel: RegisterChefViewModel = viewModel(
         factory = RegisterChefViewModelFactory(context)
     )
-
 
     LaunchedEffect(Unit) {
         authViewModel.checkLoginStatus()
@@ -99,7 +101,6 @@ fun MainNavigation(
         }
 
         composable("register") {
-            // Resetear el estado cuando se entra a la pantalla de registro
             LaunchedEffect(Unit) {
                 registerUserViewModel.resetState()
             }
@@ -121,7 +122,6 @@ fun MainNavigation(
         }
 
         composable("register-chef") {
-            // Resetear el estado cuando se entra a la pantalla de registro chef
             LaunchedEffect(Unit) {
                 registerChefViewModel.resetState()
             }
@@ -139,10 +139,6 @@ fun MainNavigation(
             )
         }
 
-
-
-
-
         composable("experiences") {
             ExperiencesScreen(
                 viewModel = experiencesViewModel,
@@ -156,6 +152,11 @@ fun MainNavigation(
                         launchSingleTop = true
                     }
                 },
+                onNavigateToRating = { experienceId ->
+                    navController.navigate("rating/$experienceId") {
+                        launchSingleTop = true
+                    }
+                },
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate("login") {
@@ -166,12 +167,51 @@ fun MainNavigation(
             )
         }
 
-
         composable("edit_profile") {
             EditProfileScreen(
                 viewModel = profileViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
+                }
+            )
+        }
+
+        composable("booking_history") {
+            val bookingHistoryViewModel: BookingHistoryViewModel = viewModel(
+                factory = BookingHistoryViewModelFactory(context)
+            )
+
+            BookingHistoryScreen(
+                viewModel = bookingHistoryViewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToRating = { booking ->
+                    navController.navigate("rating/${booking.experience._id}")
+                }
+            )
+        }
+
+        composable(
+            "rating/{experienceId}",
+            arguments = listOf(navArgument("experienceId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val experienceId = backStackEntry.arguments?.getString("experienceId") ?: return@composable
+            val ratingViewModel: RatingViewModel = viewModel(
+                factory = RatingViewModelFactory(context, experienceId),
+                key = "rating_$experienceId"
+            )
+
+            RatingScreen(
+                viewModel = ratingViewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onRatingSuccess = {
+                    navController.navigate("experiences") {
+                        popUpTo("rating/{experienceId}") { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -222,7 +262,7 @@ fun MainNavigation(
             ExperienceDetailsScreen(
                 viewModel = detailsViewModel,
                 onBack = {
-                    navController.popBackStack() 
+                    navController.popBackStack()
                 },
                 onEdit = { id ->
                     navController.navigate("edit_experience/$id")
@@ -256,7 +296,6 @@ fun MainNavigation(
                 deleteExperienceViewModel = deleteExperienceViewModel
             )
         }
-    
 
         composable("assistance/{experienceId}") { backStackEntry ->
             val experienceId = backStackEntry.arguments?.getString("experienceId") ?: return@composable

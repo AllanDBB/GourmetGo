@@ -17,4 +17,7 @@ router.post('/logout', authController.logout);
 // Refresh token 
 router.post('/refresh', authController.refresh);
 
+// Pass recover
+router.post('/recover', authController.recoverPassword);
+
 module.exports = router;

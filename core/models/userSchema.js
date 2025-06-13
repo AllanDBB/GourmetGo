@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema({
   identification: { type: String, unique: true, required: false },
   role: { type: String, enum: ['user', 'chef'], default: 'user' },
   avatar: String,
+  location: { type: String, default: '' },
   preferences: [String],
   createdAt: { type: Date, default: Date.now }
 });

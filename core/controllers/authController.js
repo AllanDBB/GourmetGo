@@ -70,12 +70,14 @@ exports.registerChef = async (req, res) => {
       email,
       phone,
       password: hashedPassword,
-      avatar: photoUrl,
-      role: 'chef'
+      avatar: photoUrl || '',
+      role: 'chef',
+      location,
+      preferences: [cuisineType]
     });
     await user.save();
 
-    await chefController.createChefProfile({
+    const chefProfile = await chefController.createChefProfile({
       userId: user._id,
       contactPerson,
       location,
@@ -95,7 +97,28 @@ exports.registerChef = async (req, res) => {
       }
     );
 
-    res.status(201).json({ message: 'Chef o restaurante registrado exitosamente.' });
+    // Devolver el perfil completo del chef
+    const chefData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar || '',
+      photoUrl: user.avatar || '',
+      role: user.role,
+      location: user.location,
+      preferences: user.preferences,
+      contactPerson: chefProfile.contactPerson,
+      cuisineType: chefProfile.cuisineType,
+      bio: chefProfile.bio,
+      experience: chefProfile.experience,
+      socialLinks: chefProfile.socialLinks
+    };
+
+    res.status(201).json({ 
+      message: 'Chef o restaurante registrado exitosamente.',
+      chef: chefData
+    });
   } catch (err) {
     res.status(500).json({ message: 'Error en el registro de chef.', error: err.message });
   }
@@ -123,7 +146,7 @@ exports.login = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { _id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     res.status(500).json({ message: 'Error en el login.', error: err.message });
   }
@@ -136,3 +159,57 @@ exports.logout = (req, res) => {
 exports.refresh = (req, res) => {
   res.json({ message: 'Refresh endpoint (implement if using refresh tokens)' });
 };
+
+
+exports.recoverPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Por favor, proporciona un correo electrónico.' });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+    const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    await mailer.sendMailTemplate(
+      user.email,
+      'Recuperación de contraseña',
+      'recover-password.html',
+      {
+        name: user.name,
+        resetUrl,
+        year: new Date().getFullYear()
+      }
+    );
+
+    res.json({ message: 'Correo de recuperación enviado.' });
+  }
+  catch (err) {
+    res.status(500).json({ message: 'Error al recuperar la contraseña.', error: err.message });
+  }
+}
+
+exports.passwordReset = async (req, res) => {
+  try {
+    const token = req.body.token;
+    const { newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: 'Token y nueva contraseña son requeridos.' });
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    await user.save();
+    res.json({ message: 'Contraseña actualizada exitosamente.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error al actualizar la contraseña.', error: err.message });
+  }
+}
+
+
+
+

@@ -1,6 +1,7 @@
 package gourmetgo.client.ui.components
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,10 +16,12 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,14 +31,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gourmetgo.client.data.models.Experience
+import java.text.SimpleDateFormat
+import java.util.*
 
 @SuppressLint("DefaultLocale")
 @Composable
 fun ExperienceCard(
     experience: Experience,
     onBookClick: () -> Unit = {},
+    onRateClick: () -> Unit = {},
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
+    val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    val isPastExperience = experience.date.isNotEmpty() && experience.date < currentDate
+    val canRate = isPastExperience && experience.status == "Activa"
+    Log.d("","$experience.date")
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -193,19 +203,48 @@ fun ExperienceCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Button(
-                onClick = onBookClick,
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = experience.remainingCapacity > 0 && experience.status == "Activa"
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = when {
-                        experience.remainingCapacity <= 0 -> "Agotado"
-                        experience.status == "Próximamente" -> "Próximamente"
-                        experience.status != "Activa" -> "No disponible"
-                        else -> "Reservar ahora"
-                    }
-                )
+                Button(
+                    onClick = onBookClick,
+                    modifier = Modifier.weight(1f),
+                    enabled = experience.remainingCapacity > 0 && experience.status == "Activa"
+                ) {
+                    Text(
+                        text = when {
+                            experience.remainingCapacity <= 0 -> "Agotado"
+                            experience.status == "Próximamente" -> "Próximamente"
+                            experience.status != "Activa" -> "No disponible"
+                            else -> "Reservar ahora"
+                        }
+                    )
+                }
+
+                Button(
+                    onClick = onRateClick,
+                    modifier = Modifier.weight(1f),
+                    enabled = canRate,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (canRate) 
+                            MaterialTheme.colorScheme.secondary 
+                        else 
+                            MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text(
+                        text = when {
+                            !isPastExperience -> "Calificar (Próximamente)"
+                            experience.status != "Activa" -> "Calificar (No disponible)"
+                            else -> "Calificar"
+                        },
+                        color = if (canRate) 
+                            MaterialTheme.colorScheme.onSecondary 
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

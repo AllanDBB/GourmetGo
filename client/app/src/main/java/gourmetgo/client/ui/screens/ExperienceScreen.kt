@@ -29,6 +29,7 @@ fun ExperiencesScreen(
     viewModel: ExperiencesViewModel,
     onNavigateToProfile: () -> Unit,
     onNavigateToBooking: (String) -> Unit,
+    onNavigateToRating: (String) -> Unit,
     onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -254,9 +255,8 @@ fun ExperiencesScreen(
                         items(experiencesToShow) { experience ->
                             ExperienceCard(
                                 experience = experience,
-                                onBookClick = {
-                                    onNavigateToBooking(experience._id)
-                                }
+                                onBookClick = { onNavigateToBooking(experience._id) },
+                                onRateClick = { onNavigateToRating(experience._id) }
                             )
                         }
 
