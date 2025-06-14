@@ -286,25 +286,19 @@ fun MainNavigation(
                     // Navegar al HomeScreen después de una reserva exitosa
                     navController.navigate("home") {
                         popUpTo("home") { inclusive = true }
-                        launchSingleTop = true
-                    }
+                        launchSingleTop = true                    }
                 }
             )
         }
-
+        
         composable("my_experiences_chef") {
             MyExperiencesChefScreen(
                 viewModel = myExperiencesChefViewModel,
-                onNavigateToCreate = { /* ... */ },               
-                
-                onNavigateToExperienceDetails = { id ->
-                    navController.navigate("chef_experience_details/$id") 
-                },
                 onNavigateToCreate = {
                     navController.navigate("create_experience")
                 },
                 onNavigateToExperienceDetails = { id ->
-                    navController.navigate("experiences/$id")
+                    navController.navigate("chef_experience_details/$id") 
                 },
                 onNavigateToAssistance = { id ->
                     navController.navigate("assistance/$id")
