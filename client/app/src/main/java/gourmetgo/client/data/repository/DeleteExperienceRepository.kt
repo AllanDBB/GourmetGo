@@ -48,16 +48,14 @@ class DeleteExperienceRepository(
             Log.e("DeleteExperienceRepository", "Error in API request-delete", e)
             Result.failure(Exception("Error : ${e.message}"))
         }
-    }
-
-    suspend fun deleteExperience(experienceId: String, mail: String, code: String): Result<String> {
+    }    suspend fun deleteExperience(experienceId: String, mail: String, code: String): Result<String> {
         val token = sharedPrefs.getToken()
-            if (token == null) {
-                if (AppConfig.ENABLE_LOGGING) {
-                    Log.e("DeleteExperienceRepository", "No token found")
-                }
-                return Result.failure(Exception("User not authenticated"))
+        if (token == null) {
+            if (AppConfig.ENABLE_LOGGING) {
+                Log.e("DeleteExperienceRepository", "No token found")
             }
+            return Result.failure(Exception("User not authenticated"))
+        }
         return try {
             Log.d("DeleteExperienceRepository", "Starting delete process for experience ID: $experienceId")
             deleteExperienceWithApi(experienceId, mail, code)

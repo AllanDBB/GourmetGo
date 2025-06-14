@@ -1,18 +1,17 @@
 package gourmetgo.client.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import gourmetgo.client.viewmodel.statesUi.AuthUiState
 import gourmetgo.client.data.repository.AuthRepository
-import kotlinx.coroutines.launch
-
 import gourmetgo.client.data.models.User
 import gourmetgo.client.data.models.Client
 import gourmetgo.client.data.models.Chef
+import java.util.regex.Pattern
 
 class AuthViewModel(
     private val repository: AuthRepository
@@ -27,9 +26,18 @@ class AuthViewModel(
 
     //VALIDACIONES
 
-
-    private fun isValidEmail(email: String): Boolean =
-        android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    private fun isValidEmail(email: String): Boolean {
+        val emailPattern = Pattern.compile(
+            "[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}" +
+            "\\@" +
+            "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
+            "(" +
+            "\\." +
+            "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}" +
+            ")+"
+        )
+        return emailPattern.matcher(email).matches()
+    }
 
     private fun isValidPassword(password: String): Boolean {
         if (password.length != 11) return false
@@ -89,8 +97,6 @@ class AuthViewModel(
         return isValid
     }
 
-
-
     fun login(email: String, password: String) {
         if (!validateCredentials(email, password)) {
             return
@@ -101,23 +107,21 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
                 repository.login(email, password)
-                    .onSuccess { user ->  // ← CAMBIAR: recibe User
+                    .onSuccess { user ->  
                         // Después del login exitoso, obtener datos específicos
                         when (user.role) {
                             "user" -> {
-                                // Obtener datos completos del cliente
                                 val client = repository.getCurrentClient()
                                 if (client != null) {
                                     uiState = uiState.copy(
                                         isLoading = false,
                                         isLoggedIn = true,
-                                        currentUser = client,  // ← Usar Client específico
+                                        currentUser = client,
                                         userType = "user",
                                         error = null,
                                         emailError = null,
                                         passwordError = null
                                     )
-                                    Log.d("AuthViewModel", "Login successful for user: ${client.name}")
                                 } else {
                                     uiState = uiState.copy(
                                         isLoading = false,
@@ -126,19 +130,17 @@ class AuthViewModel(
                                 }
                             }
                             "chef" -> {
-                                // Obtener datos completos del chef
                                 val chef = repository.getCurrentChef()
                                 if (chef != null) {
                                     uiState = uiState.copy(
                                         isLoading = false,
                                         isLoggedIn = true,
-                                        currentUser = chef,  // ← Usar Chef específico
+                                        currentUser = chef,
                                         userType = "chef",
                                         error = null,
                                         emailError = null,
                                         passwordError = null
                                     )
-                                    Log.d("AuthViewModel", "Login successful for chef: ${chef.name}")
                                 } else {
                                     uiState = uiState.copy(
                                         isLoading = false,
@@ -149,45 +151,40 @@ class AuthViewModel(
                             else -> {
                                 uiState = uiState.copy(
                                     isLoading = false,
-                                    error = "Tipo de usuario no reconocido: ${user.role}"
+                                    error = "Tipo de usuario no válido"
                                 )
                             }
                         }
                     }
-                    .onFailure { error ->
+                    .onFailure { throwable ->
                         uiState = uiState.copy(
                             isLoading = false,
-                            error = error.message ?: "Error desconocido"
+                            error = throwable.message ?: "Error desconocido en el login"
                         )
-                        Log.e("AuthViewModel", "Login failed", error)
                     }
             } catch (e: Exception) {
                 uiState = uiState.copy(
                     isLoading = false,
-                    error = "Error inesperado: ${e.message}"
+                    error = e.message ?: "Error de conexión"
                 )
-                Log.e("AuthViewModel", "Unexpected error in login", e)
             }
         }
     }
 
     fun logout() {
-        try {
-            repository.logout()
-            uiState = AuthUiState() // Reset state
-            Log.d("AuthViewModel", "Logout successful")
-        } catch (e: Exception) {
-            Log.e("AuthViewModel", "Error in logout", e)
-            uiState = uiState.copy(error = "Error al cerrar sesión")
+        viewModelScope.launch {
+            try {
+                repository.logout()
+                uiState = AuthUiState()
+            } catch (e: Exception) {
+                // Error silencioso en logout
+            }
         }
     }
 
-
-
     fun checkLoginStatus() {
         try {
-            if (repository.isLoggedIn()) {
-                // Intentar obtener Client primero
+            if (repository.hasActiveSession()) {
                 val client = repository.getCurrentClient()
                 if (client != null) {
                     uiState = uiState.copy(
@@ -195,11 +192,9 @@ class AuthViewModel(
                         currentUser = client,
                         userType = "user"
                     )
-                    Log.d("AuthViewModel", "User session restored: ${client.name}")
                     return
                 }
 
-                // Si no hay Client, intentar Chef
                 val chef = repository.getCurrentChef()
                 if (chef != null) {
                     uiState = uiState.copy(
@@ -207,19 +202,18 @@ class AuthViewModel(
                         currentUser = chef,
                         userType = "chef"
                     )
-                    Log.d("AuthViewModel", "Chef session restored: ${chef.name}")
                     return
                 }
 
-                // Si no hay ninguno, logout
+                // No hay datos de usuario, logout
                 repository.logout()
-                Log.d("AuthViewModel", "No user data found, logging out")
+                uiState = AuthUiState()
             } else {
-                Log.d("AuthViewModel", "No active session found")
+                uiState = AuthUiState()
             }
         } catch (e: Exception) {
-            Log.e("AuthViewModel", "Error checking login status", e)
-            uiState = uiState.copy(error = "Error verificando estado de sesión")
+            // Error silencioso, mantener estado por defecto
+            uiState = AuthUiState()
         }
     }
 
@@ -231,21 +225,45 @@ class AuthViewModel(
         return uiState.currentUser as? Chef
     }
 
-
-    fun isUserClient(): Boolean {
-        return uiState.userType == "user"
-    }
-
-
-    fun isUserChef(): Boolean {
-        return uiState.userType == "chef"
-    }
-
     fun clearError() {
         uiState = uiState.copy(error = null)
     }
 
+    fun clearEmailError() {
+        uiState = uiState.copy(emailError = null)
+    }
+
+    fun clearPasswordError() {
+        uiState = uiState.copy(passwordError = null)
+    }
+
     fun clearFieldErrors() {
-        uiState = uiState.copy(emailError = null, passwordError = null)
+        uiState = uiState.copy(
+            emailError = null,
+            passwordError = null
+        )
+    }
+
+    fun refreshUserData() {
+        viewModelScope.launch {
+            try {
+                when (uiState.userType) {
+                    "chef" -> {
+                        val chef = repository.getCurrentChef()
+                        if (chef != null) {
+                            uiState = uiState.copy(currentUser = chef)
+                        }
+                    }
+                    "user" -> {
+                        val client = repository.getCurrentClient()
+                        if (client != null) {
+                            uiState = uiState.copy(currentUser = client)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Error silencioso
+            }
+        }
     }
 }
