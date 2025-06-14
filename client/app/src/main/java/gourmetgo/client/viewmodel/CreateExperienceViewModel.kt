@@ -131,13 +131,12 @@ class CreateExperienceViewModel(
                 val menuImageUrl = if (menuUri != null) {
                     try {
                         cloudinaryService.uploadExperienceImage(menuUri).getOrThrow()
-                    } catch (e: Exception) {
-                        uiState = uiState.copy(isLoading = false, error = "Error al subir imagen de menú: ${e.message}")
+                    } catch (e: Exception) {                        uiState = uiState.copy(isLoading = false, error = "Error al subir imagen de menú: ${e.message}")
                         return@launch
                     }
                 } else ""
 
-                repository.createExperience(
+                val result = repository.createExperience(
                     uiState.title,
                     uiState.description,
                     uiState.date,
@@ -152,7 +151,16 @@ class CreateExperienceViewModel(
                     menuImageUrl,
                     uiState.text
                 )
-                uiState = uiState.copy(isLoading = false, createSuccess = true)
+                
+                result.onSuccess { response ->
+                    if (AppConfig.ENABLE_LOGGING) {
+                        Log.d("CreateExperienceViewModel", "Experience created successfully: ${response.experience._id}")
+                    }
+                    uiState = uiState.copy(isLoading = false, createSuccess = true)
+                }.onFailure { throwable ->
+                    Log.e("CreateExperienceViewModel", "Error creating experience: ${throwable.message}")
+                    uiState = uiState.copy(isLoading = false, error = throwable.message ?: "Error creating experience")
+                }
             } catch (e: Exception) {
                 Log.e("CreateExperienceViewModel", "Error creating experience", e)
                 uiState = uiState.copy(isLoading = false, error = e.message ?: "Unknown error")
