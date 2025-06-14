@@ -46,6 +46,12 @@ class CloudinaryService(private val context: Context) {
         return uploadImage(imageUri)
     }
 
+    suspend fun uploadExperienceImage(imageUri: Uri): Result<String> {
+        if(AppConfig.ENABLE_LOGGING)
+            Log.d("CloudinaryService", "🗺️ Uploading EXPERIENCE image...")
+        return uploadImage(imageUri)
+    }
+
     private suspend fun uploadImage(imageUri: Uri): Result<String> = withContext(Dispatchers.IO) {
         var tempFile: File? = null
 
