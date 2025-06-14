@@ -48,6 +48,9 @@ import gourmetgo.client.viewmodel.factories.RegisterUserViewModelFactory
 import gourmetgo.client.viewmodel.factories.RegisterChefViewModelFactory
 import gourmetgo.client.viewmodel.DeleteExperienceViewModel
 import gourmetgo.client.viewmodel.factories.DeleteExperienceViewModelFactory
+import gourmetgo.client.viewmodel.CreateExperienceViewModel
+import gourmetgo.client.viewmodel.factories.CreateExperienceViewModelFactory
+import gourmetgo.client.ui.screens.CreateExperienceScreen
 
 
 @Composable
@@ -256,7 +259,9 @@ fun MainNavigation(
         composable("my_experiences_chef") {
             MyExperiencesChefScreen(
                 viewModel = myExperiencesChefViewModel,
-                onNavigateToCreate = { /* ... */ },
+                onNavigateToCreate = {
+                    navController.navigate("create_experience")
+                },
                 onNavigateToExperienceDetails = { id ->
                     navController.navigate("experiences/$id")
                 },
@@ -336,6 +341,22 @@ fun MainNavigation(
                     // dsp
                 },
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("create_experience") {
+            val createExperienceViewModel: CreateExperienceViewModel = viewModel(
+                factory = CreateExperienceViewModelFactory(context)
+            )
+            CreateExperienceScreen(
+                viewModel = createExperienceViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onCreateSuccess = {
+                    navController.navigate("my_experiences_chef") {
+                        popUpTo("create_experience") { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             )
         }
     }
