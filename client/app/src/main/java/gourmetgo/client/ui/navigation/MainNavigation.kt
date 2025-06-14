@@ -63,6 +63,9 @@ import gourmetgo.client.viewmodel.factories.DeleteExperienceViewModelFactory
 import gourmetgo.client.viewmodel.CreateExperienceViewModel
 import gourmetgo.client.viewmodel.factories.CreateExperienceViewModelFactory
 import gourmetgo.client.ui.screens.CreateExperienceScreen
+import gourmetgo.client.ui.screens.ExperienceReviewsScreen
+import gourmetgo.client.viewmodel.ExperienceReviewsViewModel
+import gourmetgo.client.viewmodel.factories.ExperienceReviewsViewModelFactory
 
 
 @Composable
@@ -390,13 +393,13 @@ fun MainNavigation(
                         popUpTo("edit_experience/{id}") { inclusive = true }
                         launchSingleTop = true
                     }
-                },
-                onUpdateSuccess = {
+                },                onUpdateSuccess = {
                     navController.navigate("my_experiences_chef") {
                         popUpTo("edit_experience/{id}") { inclusive = true }
                         launchSingleTop = true
                     }
-                },                deleteExperienceViewModel = deleteExperienceViewModel
+                },
+                deleteExperienceViewModel = deleteExperienceViewModel
             )
         }
 
@@ -406,73 +409,17 @@ fun MainNavigation(
             arguments = listOf(navArgument("experienceId") { type = NavType.StringType })
         ) { backStackEntry ->
             val experienceId = backStackEntry.arguments?.getString("experienceId") ?: return@composable
-            
-            // Pantalla simple para mostrar reseñas (por ahora)
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = { Text("Reseñas de la Experiencia") },
-                        navigationIcon = {
-                            IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-                            }
-                        }
-                    )
+            val reviewsViewModel: ExperienceReviewsViewModel = viewModel(
+                factory = ExperienceReviewsViewModelFactory(context, experienceId),
+                key = "experience_reviews_$experienceId"
+            )
+              ExperienceReviewsScreen(
+                viewModel = reviewsViewModel,
+                onBack = { navController.popBackStack() },
+                onLeaveReview = { experienceId ->
+                    navController.navigate("rating/$experienceId")
                 }
-            ) { paddingValues ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = "🌟",
-                            style = MaterialTheme.typography.displayLarge
-                        )
-                        Text(
-                            text = "Reseñas de la Experiencia",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "Próximamente podrás ver todas las reseñas y calificaciones de otros usuarios aquí.",
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = "💡 Mientras tanto...",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Puedes hacer tu reserva y después dejar tu propia reseña para ayudar a otros usuarios.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+            )
         }
 
         composable("assistance/{experienceId}") { backStackEntry ->

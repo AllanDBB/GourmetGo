@@ -74,10 +74,9 @@ object BookingHistoryUtils {
 
     fun canCancelBooking(booking: BookingSummary): Boolean {
         return booking.status == "pending"
-    }
-
-    fun canRateBooking(booking: BookingSummary): Boolean {
-        return booking.status == "attended"
+    }    fun canRateBooking(booking: BookingSummary): Boolean {
+        // Permite reseñas para experiencias asistidas, confirmadas o pendientes
+        return booking.status in listOf("attended", "confirmed", "pending")
     }
 
     fun getStatusColor(status: String): String {

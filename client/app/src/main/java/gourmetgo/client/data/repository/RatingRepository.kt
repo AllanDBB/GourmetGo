@@ -5,6 +5,7 @@ import gourmetgo.client.AppConfig
 import gourmetgo.client.data.localStorage.SharedPrefsManager
 import gourmetgo.client.data.models.Rating
 import gourmetgo.client.data.models.dtos.RatingRequest
+import gourmetgo.client.data.models.dtos.RatingWithUser
 import gourmetgo.client.data.remote.ApiService
 
 class RatingRepository(
@@ -45,6 +46,28 @@ class RatingRepository(
                 Log.e("RatingRepository", "Error creating rating", e)
             }
             Result.failure(Exception("Error creating rating: ${e.message}"))
+        }
+    }
+
+    suspend fun getExperienceRatings(experienceId: String): Result<List<RatingWithUser>> {
+        return try {
+            if (AppConfig.ENABLE_LOGGING) {
+                Log.d("RatingRepository", "Fetching ratings for experience: $experienceId")
+            }
+
+            val ratings = apiService.getExperienceRatings(experienceId)
+
+            if (AppConfig.ENABLE_LOGGING) {
+                Log.d("RatingRepository", "Fetched ${ratings.size} ratings")
+            }
+
+            Result.success(ratings)
+
+        } catch (e: Exception) {
+            if (AppConfig.ENABLE_LOGGING) {
+                Log.e("RatingRepository", "Error fetching ratings", e)
+            }
+            Result.failure(Exception("Error fetching ratings: ${e.message}"))
         }
     }
 }
