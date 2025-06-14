@@ -1,40 +1,52 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
 package gourmetgo.client.ui.navigation
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import gourmetgo.client.ui.screens.EditProfileScreen
+import androidx.navigation.NavType
 import gourmetgo.client.ui.screens.LoginScreen
 import gourmetgo.client.ui.screens.ExperiencesScreen
 import gourmetgo.client.ui.screens.BookingHistoryScreen
 import gourmetgo.client.ui.screens.RatingScreen
+import gourmetgo.client.ui.screens.EditProfileScreen
+import gourmetgo.client.ui.screens.HomeScreen
 import gourmetgo.client.viewmodel.AuthViewModel
 import gourmetgo.client.viewmodel.ExperiencesViewModel
 import gourmetgo.client.viewmodel.ProfileViewModel
 import gourmetgo.client.viewmodel.BookingHistoryViewModel
 import gourmetgo.client.viewmodel.RatingViewModel
+import gourmetgo.client.viewmodel.HomeViewModel
 import gourmetgo.client.viewmodel.factories.AuthViewModelFactory
 import gourmetgo.client.viewmodel.factories.ExperiencesViewModelFactory
 import gourmetgo.client.viewmodel.factories.ProfileViewModelFactory
 import gourmetgo.client.viewmodel.factories.BookingHistoryViewModelFactory
 import gourmetgo.client.viewmodel.factories.RatingViewModelFactory
+import gourmetgo.client.viewmodel.factories.HomeViewModelFactory
 import gourmetgo.client.ui.screens.BookExperienceScreen
+import gourmetgo.client.ui.screens.MyExperiencesChefScreen
+import gourmetgo.client.ui.screens.ExperienceDetailsScreen
+import gourmetgo.client.ui.screens.UpdateExperienceScreen
 import gourmetgo.client.viewmodel.BookingViewModel
 import gourmetgo.client.viewmodel.factories.BookingViewModelFactory
 import gourmetgo.client.viewmodel.MyExperiencesChefViewModel
 import gourmetgo.client.viewmodel.factories.MyExperiencesChefViewModelFactory
 import gourmetgo.client.viewmodel.ExperienceDetailsViewModel
 import gourmetgo.client.viewmodel.factories.ExperienceDetailsViewModelFactory
-import gourmetgo.client.ui.screens.MyExperiencesChefScreen
-import gourmetgo.client.ui.screens.ExperienceDetailsScreen
-import gourmetgo.client.ui.screens.UpdateExperienceScreen
 import gourmetgo.client.viewmodel.factories.UpdateExperienceViewModelFactory
 import gourmetgo.client.viewmodel.UpdateExperienceViewModel
 import gourmetgo.client.viewmodel.ViewAssistanceViewModel
@@ -59,9 +71,9 @@ fun MainNavigation(
     navController: NavHostController = rememberNavController()
 ) {
     val context = LocalContext.current
-
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(context))
     val experiencesViewModel: ExperiencesViewModel = viewModel(factory = ExperiencesViewModelFactory(context))
+    val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(context))
     val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(context))
     val myExperiencesChefViewModel: MyExperiencesChefViewModel = viewModel(factory = MyExperiencesChefViewModelFactory(context))
     val experienceDetailsViewModel: ExperienceDetailsViewModel = viewModel(
@@ -84,8 +96,8 @@ fun MainNavigation(
 
     val startDestination = when (authViewModel.uiState.userType) {
         "chef" -> "my_experiences_chef"
-        "user" -> "experiences"
-        else -> if (authViewModel.uiState.isLoggedIn) "experiences" else "login"
+        "user" -> "home"
+        else -> if (authViewModel.uiState.isLoggedIn) "home" else "login"
     }
 
     NavHost(
@@ -95,22 +107,47 @@ fun MainNavigation(
     ) {
         composable("login") {
             LoginScreen(
-                viewModel = authViewModel,
-                onLoginSuccess = {
+                viewModel = authViewModel,                onLoginSuccess = {
                     when (authViewModel.uiState.userType) {
                         "chef" -> navController.navigate("my_experiences_chef") {
                             popUpTo("login") { inclusive = true }
                         }
-                        "user" -> navController.navigate("experiences") {
+                        "user" -> navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
                         }
-                        else -> navController.navigate("experiences") {
+                        else -> navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
                         }
                     }
                 },
                 onNavigateToRegister = {
                     navController.navigate("register")
+                }            )
+        }
+
+        composable("home") {
+            HomeScreen(
+                viewModel = homeViewModel,
+                onGoToExperiences = {
+                    navController.navigate("experiences")
+                },                onNavigateToExperienceDetails = { experienceId ->
+                    navController.navigate("experience_details/$experienceId")
+                },
+                onNavigateToProfile = {
+                    navController.navigate("edit_profile") {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToHistory = {
+                    navController.navigate("booking_history") {
+                        launchSingleTop = true
+                    }
+                },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
@@ -119,7 +156,7 @@ fun MainNavigation(
             LaunchedEffect(Unit) {
                 registerUserViewModel.resetState()
             }
-
+            
             RegisterUserScreen(
                 viewModel = registerUserViewModel,
                 onRegisterSuccess = {
@@ -128,7 +165,9 @@ fun MainNavigation(
                     }
                 },
                 onNavigateToLogin = {
-                    navController.popBackStack()
+                    navController.navigate("login") {
+                        popUpTo("register") { inclusive = true }
+                    }
                 },
                 onNavigateToRegisterChef = {
                     navController.navigate("register-chef")
@@ -150,8 +189,7 @@ fun MainNavigation(
                 },
                 onNavigateToLogin = {
                     navController.popBackStack()
-                }
-            )
+                }            )
         }
 
         composable("experiences") {
@@ -163,9 +201,7 @@ fun MainNavigation(
                     }
                 },
                 onNavigateToBooking = { experienceId ->
-                    navController.navigate("book_experience/$experienceId") {
-                        launchSingleTop = true
-                    }
+                    navController.navigate("book_experience/$experienceId")
                 },
                 onNavigateToRating = { experienceId ->
                     navController.navigate("rating/$experienceId") {
@@ -176,7 +212,6 @@ fun MainNavigation(
                     authViewModel.logout()
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
                     }
                 }
             )
@@ -200,9 +235,10 @@ fun MainNavigation(
                 viewModel = bookingHistoryViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
-                },
-                onNavigateToRating = { booking ->
-                    navController.navigate("rating/${booking.experience._id}")
+                },                onNavigateToRating = { booking ->
+                    booking.experience?._id?.let { experienceId ->
+                        navController.navigate("rating/$experienceId")
+                    }
                 }
             )
         }
@@ -221,9 +257,9 @@ fun MainNavigation(
                 viewModel = ratingViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
-                },
-                onRatingSuccess = {
-                    navController.navigate("experiences") {
+                },                onRatingSuccess = {
+                    // Navegar al menú principal (home) después de una reseña exitosa
+                    navController.navigate("home") {
                         popUpTo("rating/{experienceId}") { inclusive = true }
                         launchSingleTop = true
                     }
@@ -246,16 +282,15 @@ fun MainNavigation(
                 viewModel = bookingViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
-                },
-                onBookingSuccess = {
-                    navController.navigate("experiences") {
-                        popUpTo("book_experience/{experienceId}") { inclusive = true }
-                        launchSingleTop = true
-                    }
+                },                onBookingSuccess = {
+                    // Navegar al HomeScreen después de una reserva exitosa
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                        launchSingleTop = true                    }
                 }
             )
         }
-
+        
         composable("my_experiences_chef") {
             MyExperiencesChefScreen(
                 viewModel = myExperiencesChefViewModel,
@@ -263,7 +298,7 @@ fun MainNavigation(
                     navController.navigate("create_experience")
                 },
                 onNavigateToExperienceDetails = { id ->
-                    navController.navigate("experiences/$id")
+                    navController.navigate("chef_experience_details/$id") 
                 },
                 onNavigateToAssistance = { id ->
                     navController.navigate("assistance/$id")
@@ -283,11 +318,16 @@ fun MainNavigation(
             )
         }
 
-        composable("experiences/{id}") { backStackEntry ->
-            val experienceId = backStackEntry.arguments?.getString("id") ?: return@composable
+        composable(
+            "experience_details/{experienceId}",
+            arguments = listOf(navArgument("experienceId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val experienceId = backStackEntry.arguments?.getString("experienceId") ?: return@composable
             val detailsViewModel: ExperienceDetailsViewModel = viewModel(
-                factory = ExperienceDetailsViewModelFactory(context, experienceId)
+                factory = ExperienceDetailsViewModelFactory(context, experienceId),
+                key = "experience_details_$experienceId"
             )
+            
             ExperienceDetailsScreen(
                 viewModel = detailsViewModel,
                 onBack = {
@@ -295,7 +335,42 @@ fun MainNavigation(
                 },
                 onEdit = { id ->
                     navController.navigate("edit_experience/$id")
-                }
+                },
+                onReserve = { expId ->
+                    navController.navigate("book_experience/$expId")
+                },
+                onViewReviews = { expId ->
+                    navController.navigate("experience_reviews/$expId")
+                },
+                isChefView = authViewModel.uiState.userType == "chef"
+            )
+        }
+
+        composable(
+            "chef_experience_details/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val experienceId = backStackEntry.arguments?.getString("id") ?: return@composable
+            
+            val detailsViewModel: ExperienceDetailsViewModel = viewModel(
+                factory = ExperienceDetailsViewModelFactory(context, experienceId)
+            )
+            
+            ExperienceDetailsScreen(
+                viewModel = detailsViewModel,
+                onBack = {
+                    navController.popBackStack()
+                },
+                onEdit = { id ->
+                    navController.navigate("edit_experience/$id")
+                },
+                onReserve = { experienceId ->
+                    navController.navigate("book_experience/$experienceId")
+                },
+                onViewReviews = { experienceId ->
+                    navController.navigate("experience_reviews/$experienceId")
+                },
+                isChefView = true // Vista para chefs
             )
         }
 
@@ -321,9 +396,83 @@ fun MainNavigation(
                         popUpTo("edit_experience/{id}") { inclusive = true }
                         launchSingleTop = true
                     }
-                },
-                deleteExperienceViewModel = deleteExperienceViewModel
+                },                deleteExperienceViewModel = deleteExperienceViewModel
             )
+        }
+
+        // Nueva ruta para ver reseñas de una experiencia
+        composable(
+            "experience_reviews/{experienceId}",
+            arguments = listOf(navArgument("experienceId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val experienceId = backStackEntry.arguments?.getString("experienceId") ?: return@composable
+            
+            // Pantalla simple para mostrar reseñas (por ahora)
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Reseñas de la Experiencia") },
+                        navigationIcon = {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                            }
+                        }
+                    )
+                }
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            text = "🌟",
+                            style = MaterialTheme.typography.displayLarge
+                        )
+                        Text(
+                            text = "Reseñas de la Experiencia",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Próximamente podrás ver todas las reseñas y calificaciones de otros usuarios aquí.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "💡 Mientras tanto...",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Puedes hacer tu reserva y después dejar tu propia reseña para ayudar a otros usuarios.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         composable("assistance/{experienceId}") { backStackEntry ->

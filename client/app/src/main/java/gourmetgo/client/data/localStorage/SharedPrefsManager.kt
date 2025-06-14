@@ -33,20 +33,31 @@ class SharedPrefsManager(context: Context) {
         return if (userJson != null) {
             gson.fromJson(userJson, User::class.java)
         } else null
-    }
-
-    //Chef
+    }    //Chef
     fun saveChef(chef: Chef) {
+        Log.d("SharedPrefsManager", "Saving chef: $chef")
+        Log.d("SharedPrefsManager", "Chef _id: '${chef._id}'")
         val chefJson = gson.toJson(chef)
+        Log.d("SharedPrefsManager", "Chef JSON: $chefJson")
         prefs.edit().putString("chef_data", chefJson).apply()
-    }
-
-    fun getChef(): Chef? {
+        Log.d("SharedPrefsManager", "Chef saved successfully")
+    }fun getChef(): Chef? {
         val chefJson = prefs.getString("chef_data", null)
         Log.d("SharedPrefsManager", "chefJson: $chefJson")
         return if (chefJson != null) {
-            gson.fromJson(chefJson, Chef::class.java)
-        } else null
+            try {
+                val chef = gson.fromJson(chefJson, Chef::class.java)
+                Log.d("SharedPrefsManager", "Parsed chef: $chef")
+                Log.d("SharedPrefsManager", "Chef _id: '${chef._id}'")
+                chef
+            } catch (e: Exception) {
+                Log.e("SharedPrefsManager", "Error parsing chef JSON", e)
+                null
+            }
+        } else {
+            Log.w("SharedPrefsManager", "No chef data found in SharedPrefs")
+            null
+        }
     }
 
     //Client
@@ -75,5 +86,29 @@ class SharedPrefsManager(context: Context) {
         clearAll()
     }
 
+    // Método para verificar y debuggear el estado actual
+    fun debugUserData(): String {
+        val token = getToken()
+        val user = getUser()
+        val chef = getChef()
+        val client = getClient()
+        
+        return buildString {
+            appendLine("=== SharedPrefs Debug Info ===")
+            appendLine("Token: ${if (token != null) "EXISTS (${token.take(20)}...)" else "NULL"}")
+            appendLine("User: $user")
+            appendLine("Chef: $chef")
+            appendLine("Chef _id: '${chef?._id ?: "NULL"}'")
+            appendLine("Client: $client")
+            appendLine("Client id: '${client?.id ?: "NULL"}'")
+            appendLine("IsLoggedIn: ${isLoggedIn()}")
+            appendLine("==============================")
+        }
+    }
 
+    // Método para limpiar datos corruptos y forzar re-login
+    fun clearCorruptedData() {
+        Log.w("SharedPrefsManager", "Clearing potentially corrupted data")
+        clearAll()
+    }
 }

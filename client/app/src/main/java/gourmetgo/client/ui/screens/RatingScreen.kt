@@ -8,7 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import gourmetgo.client.utils.BookingHistoryUtils
 import gourmetgo.client.viewmodel.RatingViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun RatingScreen(
@@ -47,7 +48,7 @@ fun RatingScreen(
 
     LaunchedEffect(uiState.ratingSuccess) {
         if (uiState.ratingSuccess) {
-            Toast.makeText(context, "¡Calificación enviada exitosamente!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "¡Reseña enviada exitosamente! 🌟 Gracias por tu opinión", Toast.LENGTH_LONG).show()
             onRatingSuccess()
         }
     }
@@ -62,7 +63,7 @@ fun RatingScreen(
             ) {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
+                        Icons.Default.ArrowBack,
                         contentDescription = "Volver",
                         tint = MaterialTheme.colorScheme.primary
                     )

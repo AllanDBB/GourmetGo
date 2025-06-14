@@ -287,13 +287,27 @@ fun UpdateExperienceScreen(
                 keyboardType = KeyboardType.Text,
                 focusManager = focusManager
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))            
             Button(
                 onClick = {
                     val experience = uiState.experience
-                    val today = java.time.LocalDate.now()
+                    val today = java.util.Calendar.getInstance()
+                    today.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                    today.set(java.util.Calendar.MINUTE, 0)
+                    today.set(java.util.Calendar.SECOND, 0)
+                    today.set(java.util.Calendar.MILLISECOND, 0)
+                    
                     val selectedDate = try {
-                        java.time.LocalDate.parse(date)
+                        val parts = date.split("-")
+                        if (parts.size == 3) {
+                            val year = parts[0].toInt()
+                            val month = parts[1].toInt() - 1 // Calendar months are 0-based
+                            val day = parts[2].toInt()
+                            val cal = java.util.Calendar.getInstance()
+                            cal.set(year, month, day, 0, 0, 0)
+                            cal.set(java.util.Calendar.MILLISECOND, 0)
+                            cal
+                        } else null
                     } catch (e: Exception) { null }
                     val originalCapacity = experience?.capacity ?: 0
                     val remainingCapacity = experience?.remainingCapacity ?: 0
@@ -305,7 +319,7 @@ fun UpdateExperienceScreen(
                     val isLocationUrl = android.util.Patterns.WEB_URL.matcher(location).matches()
 
                     when {
-                        selectedDate == null || selectedDate.isBefore(today) -> {
+                        selectedDate == null || selectedDate.before(today.time) -> {
                             Toast.makeText(context, "La fecha no puede ser anterior a hoy", Toast.LENGTH_LONG).show()
                         }
                         newCapacity < alreadyBooked -> {
