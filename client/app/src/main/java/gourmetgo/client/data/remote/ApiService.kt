@@ -25,6 +25,8 @@ import gourmetgo.client.data.models.dtos.RatingRequest
 import gourmetgo.client.data.models.dtos.RatingResponse
 import gourmetgo.client.data.models.dtos.DeleteExperienceRequest
 import gourmetgo.client.data.models.dtos.RequestDeleteRequest
+import gourmetgo.client.data.models.dtos.CreateExperienceRequest
+import gourmetgo.client.data.models.dtos.CreateExperienceResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -115,4 +117,10 @@ interface ApiService {
         @Path("id") id: String,
         @Body request: DeleteExperienceRequest
     ): RequestDeleteRequest
+
+    @POST("experiences")
+    suspend fun createExperience(
+        @Header("Authorization") token: String,
+        @Body experience: CreateExperienceRequest
+    ): CreateExperienceResponse
 }
