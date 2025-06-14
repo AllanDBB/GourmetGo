@@ -128,9 +128,42 @@ class AuthViewModel(
                                         error = "Error obteniendo datos del usuario"
                                     )
                                 }
-                            }
-                            "chef" -> {
-                                val chef = repository.getCurrentChef()
+                            }                            "chef" -> {
+                                // Estrategia de auto-refresh con múltiples intentos para chef
+                                var chef: Chef? = null
+                                var attemptCount = 0
+                                val maxAttempts = 5
+                                
+                                // Primer intento inmediato
+                                chef = repository.getCurrentChef()
+                                
+                                // Si falla, implementar auto-refresh con delays incrementales
+                                while (chef == null && attemptCount < maxAttempts) {
+                                    attemptCount++
+                                    val delayTime = when (attemptCount) {
+                                        1 -> 200L  // Primer retry: 200ms
+                                        2 -> 500L  // Segundo retry: 500ms  
+                                        3 -> 1000L // Tercer retry: 1s
+                                        4 -> 2000L // Cuarto retry: 2s
+                                        else -> 3000L // Quinto retry: 3s
+                                    }
+                                    
+                                    kotlinx.coroutines.delay(delayTime)
+                                    
+                                    // Forzar refresh de datos del usuario
+                                    try {
+                                        // Refrescar la sesión
+                                        repository.refreshChefSession()
+                                        chef = repository.getCurrentChef()
+                                        
+                                        if (chef != null) {
+                                            break // ¡Éxito! Salir del loop
+                                        }
+                                    } catch (e: Exception) {
+                                        // Continuar con el siguiente intento
+                                    }
+                                }
+                                
                                 if (chef != null) {
                                     uiState = uiState.copy(
                                         isLoading = false,
@@ -142,9 +175,10 @@ class AuthViewModel(
                                         passwordError = null
                                     )
                                 } else {
+                                    // Último intento: mostrar error con opción de reintentar
                                     uiState = uiState.copy(
                                         isLoading = false,
-                                        error = "Error obteniendo datos del chef"
+                                        error = "Error cargando datos del chef. Pulsa 'Iniciar Sesión' nuevamente para reintentar."
                                     )
                                 }
                             }
@@ -180,40 +214,60 @@ class AuthViewModel(
                 // Error silencioso en logout
             }
         }
-    }
+    }    fun checkLoginStatus() {
+        viewModelScope.launch {
+            try {
+                if (repository.hasActiveSession()) {
+                    val client = repository.getCurrentClient()
+                    if (client != null) {
+                        uiState = uiState.copy(
+                            isLoggedIn = true,
+                            currentUser = client,
+                            userType = "user"
+                        )
+                        return@launch
+                    }
 
-    fun checkLoginStatus() {
-        try {
-            if (repository.hasActiveSession()) {
-                val client = repository.getCurrentClient()
-                if (client != null) {
-                    uiState = uiState.copy(
-                        isLoggedIn = true,
-                        currentUser = client,
-                        userType = "user"
-                    )
-                    return
+                    // Para chef, implementar auto-refresh con múltiples intentos
+                    var chef = repository.getCurrentChef()
+                    if (chef != null) {
+                        uiState = uiState.copy(
+                            isLoggedIn = true,
+                            currentUser = chef,
+                            userType = "chef"
+                        )
+                        return@launch
+                    } else {
+                        // Auto-refresh para chef si no se encuentra inicialmente
+                        try {
+                            kotlinx.coroutines.delay(300)
+                            repository.refreshChefSession()
+                            kotlinx.coroutines.delay(200)
+                            chef = repository.getCurrentChef()
+                            
+                            if (chef != null) {
+                                uiState = uiState.copy(
+                                    isLoggedIn = true,
+                                    currentUser = chef,
+                                    userType = "chef"
+                                )
+                                return@launch
+                            }
+                        } catch (e: Exception) {
+                            // Si falla el refresh, continuar con logout
+                        }
+                    }
+
+                    // No hay datos de usuario, logout
+                    repository.logout()
+                    uiState = AuthUiState()
+                } else {
+                    uiState = AuthUiState()
                 }
-
-                val chef = repository.getCurrentChef()
-                if (chef != null) {
-                    uiState = uiState.copy(
-                        isLoggedIn = true,
-                        currentUser = chef,
-                        userType = "chef"
-                    )
-                    return
-                }
-
-                // No hay datos de usuario, logout
-                repository.logout()
-                uiState = AuthUiState()
-            } else {
+            } catch (e: Exception) {
+                // Error silencioso, mantener estado por defecto
                 uiState = AuthUiState()
             }
-        } catch (e: Exception) {
-            // Error silencioso, mantener estado por defecto
-            uiState = AuthUiState()
         }
     }
 
@@ -242,14 +296,24 @@ class AuthViewModel(
             emailError = null,
             passwordError = null
         )
-    }
-
-    fun refreshUserData() {
+    }    fun refreshUserData() {
         viewModelScope.launch {
             try {
                 when (uiState.userType) {
                     "chef" -> {
-                        val chef = repository.getCurrentChef()
+                        // Implementar auto-refresh mejorado para chef
+                        var chef = repository.getCurrentChef()
+                        if (chef == null) {
+                            // Si no hay chef, forzar refresh
+                            try {
+                                repository.refreshChefSession()
+                                kotlinx.coroutines.delay(150)
+                                chef = repository.getCurrentChef()
+                            } catch (e: Exception) {
+                                // Error silencioso en refresh
+                            }
+                        }
+                        
                         if (chef != null) {
                             uiState = uiState.copy(currentUser = chef)
                         }
@@ -263,6 +327,41 @@ class AuthViewModel(
                 }
             } catch (e: Exception) {
                 // Error silencioso
+            }
+        }
+    }
+
+    fun forceRefreshChef() {
+        if (uiState.userType == "chef") {
+            viewModelScope.launch {
+                try {
+                    uiState = uiState.copy(isLoading = true)
+                    
+                    // Forzar refresh de la sesión del chef
+                    repository.refreshChefSession()
+                    kotlinx.coroutines.delay(200)
+                    
+                    val chef = repository.getCurrentChef()
+                    if (chef != null) {
+                        uiState = uiState.copy(
+                            isLoading = false,
+                            isLoggedIn = true,
+                            currentUser = chef,
+                            userType = "chef",
+                            error = null
+                        )
+                    } else {
+                        uiState = uiState.copy(
+                            isLoading = false,
+                            error = "No se pudieron cargar los datos del chef"
+                        )
+                    }
+                } catch (e: Exception) {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        error = "Error al refrescar: ${e.message}"
+                    )
+                }
             }
         }
     }

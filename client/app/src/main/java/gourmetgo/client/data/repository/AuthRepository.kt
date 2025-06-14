@@ -97,35 +97,60 @@ class AuthRepository(
             android.util.Log.d("AuthRepository", "Getting chef data from API...")
             val chef = apiService.getChefMe(token = "Bearer ${sharedPrefs.getToken()}")
             android.util.Log.d("AuthRepository", "Chef received from API: $chef")
+              // Estrategia de guardado robusta para la carga inicial
+            var savedSuccessfully = false
+            var saveAttempts = 0
+            val maxSaveAttempts = 5
             
-            // Guardar chef
-            sharedPrefs.saveChef(chef)
-            android.util.Log.d("AuthRepository", "Chef saved to SharedPrefs")
-              // Verificación múltiple para asegurar sincronización
-            var savedChef: gourmetgo.client.data.models.Chef? = null
-            var attempts = 0
-            while (savedChef == null && attempts < 8) {
-                delay(75) // Delay incrementado
-                savedChef = sharedPrefs.getChef()
-                attempts++
-                if (savedChef == null) {
-                    android.util.Log.d("AuthRepository", "Intento $attempts: chef aún no disponible, reintentando...")
-                    
-                    // Si fallan varios intentos, volver a guardar
-                    if (attempts % 3 == 0) {
-                        android.util.Log.d("AuthRepository", "Reintentando guardar chef en intento $attempts")
-                        sharedPrefs.saveChef(chef)
-                        delay(100)
+            while (!savedSuccessfully && saveAttempts < maxSaveAttempts) {
+                saveAttempts++
+                android.util.Log.d("AuthRepository", "🔄 Intento de guardado $saveAttempts para chef...")
+                
+                try {                    // Limpiar datos previos si es un reintento
+                    if (saveAttempts > 1) {
+                        sharedPrefs.clearChefData()
+                        delay(150L)
                     }
+                    
+                    // Guardar chef con delay progresivo
+                    sharedPrefs.saveChef(chef)
+                    android.util.Log.d("AuthRepository", "Chef saved to SharedPrefs (attempt $saveAttempts)")
+                    delay(200L * saveAttempts) // Delay incremental: 200ms, 400ms, 600ms, etc.
+                    
+                    // Verificar que se guardó correctamente con múltiples verificaciones
+                    var verificationAttempts = 0
+                    var savedChef: gourmetgo.client.data.models.Chef? = null
+                    
+                    while (savedChef == null && verificationAttempts < 6) {
+                        verificationAttempts++
+                        delay(100L * verificationAttempts) // Delay incremental para verificación
+                        savedChef = sharedPrefs.getChef()
+                        
+                        if (savedChef != null) {
+                            android.util.Log.d("AuthRepository", "✅ Chef verificado exitosamente! Intento: $saveAttempts, Verificación: $verificationAttempts, Nombre: ${savedChef.name}")
+                            savedSuccessfully = true
+                            break
+                        } else {
+                            android.util.Log.d("AuthRepository", "⚠️ Verificación $verificationAttempts fallida en intento de guardado $saveAttempts")
+                        }
+                    }
+                    
+                } catch (e: Exception) {
+                    android.util.Log.e("AuthRepository", "Error en intento de guardado $saveAttempts", e)
+                }
+                  // Si no se guardó exitosamente y hay más intentos, esperar
+                if (!savedSuccessfully && saveAttempts < maxSaveAttempts) {
+                    android.util.Log.d("AuthRepository", "🔄 Preparando reintento ${saveAttempts + 1} después de delay...")
+                    delay(750L * saveAttempts) // Delay progresivo entre intentos: 750ms, 1.5s, 2.25s, etc.
                 }
             }
             
-            if (savedChef != null) {
-                android.util.Log.d("AuthRepository", "Chef verification successful after $attempts attempts: ${savedChef.name}")
-            } else {
-                android.util.Log.e("AuthRepository", "Chef verification failed after $attempts attempts")
-                throw Exception("Failed to save chef data after multiple attempts")
+            if (!savedSuccessfully) {
+                android.util.Log.e("AuthRepository", "❌ CRÍTICO: Chef data NO se pudo cargar después de $maxSaveAttempts intentos")
+                throw Exception("DATOS DEL CHEF NO SE PUDIERON CARGAR - Intenta cerrar y abrir la app nuevamente")
             }
+            
+            android.util.Log.d("AuthRepository", "🎉 SUCCESS: Chef data cargada y sincronizada exitosamente!")
             
         } catch (e: Exception) {
             android.util.Log.e("AuthRepository", "Error in mapUserToChef", e)
@@ -301,6 +326,46 @@ class AuthRepository(
             Log.e("AuthRepository", "Error in API updateUser", e)
             Result.failure(Exception("Error in API updateUser"))
         }
+    }    suspend fun refreshChefSession() {
+        try {
+            val token = sharedPrefs.getToken()
+            if (!token.isNullOrEmpty()) {
+                android.util.Log.d("AuthRepository", "🔄 Refrescando sesión del chef...")
+                
+                // Volver a obtener los datos del chef desde la API
+                val chef = apiService.getChefMe(token = "Bearer $token")
+                android.util.Log.d("AuthRepository", "Chef data obtenida desde API para refresh: ${chef.name}")
+                  // Limpiar datos previos
+                sharedPrefs.clearChefData()
+                delay(100L)
+                
+                // Estrategia de guardado robusta para refresh
+                var refreshSuccess = false
+                for (attempt in 1..3) {                    try {
+                        sharedPrefs.saveChef(chef)
+                        delay(200L * attempt) // Delay incremental
+                        
+                        val savedChef = sharedPrefs.getChef()
+                        if (savedChef != null) {
+                            android.util.Log.d("AuthRepository", "✅ Refresh exitoso en intento $attempt: ${savedChef.name}")
+                            refreshSuccess = true
+                            break
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("AuthRepository", "Error en refresh attempt $attempt", e)
+                    }
+                }
+                
+                if (!refreshSuccess) {
+                    android.util.Log.e("AuthRepository", "❌ Refresh falló después de 3 intentos")
+                    throw Exception("No se pudo refrescar la sesión del chef")
+                }
+                
+                android.util.Log.d("AuthRepository", "🎉 Sesión del chef refrescada exitosamente")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("AuthRepository", "Error refrescando sesión del chef", e)
+            throw e
+        }
     }
-
 }

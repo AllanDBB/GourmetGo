@@ -111,4 +111,10 @@ class SharedPrefsManager(context: Context) {
         Log.w("SharedPrefsManager", "Clearing potentially corrupted data")
         clearAll()
     }
+
+    fun clearChefData() {
+        Log.d("SharedPrefsManager", "Clearing chef data...")
+        prefs.edit().remove("chef_data").apply()
+        Log.d("SharedPrefsManager", "Chef data cleared")
+    }
 }
