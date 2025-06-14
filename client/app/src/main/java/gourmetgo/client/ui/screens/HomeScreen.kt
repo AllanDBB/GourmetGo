@@ -11,12 +11,15 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.SmartToy
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,6 +47,7 @@ fun HomeScreen(
     onNavigateToExperienceDetails: (String) -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToHistory: () -> Unit = {},
+    onNavigateToChatBot: () -> Unit = {},
     onLogout: () -> Unit = {},
     currentNavIndex: Int = 0,
     onNavIndexChanged: (Int) -> Unit = {}
@@ -140,8 +144,7 @@ fun HomeScreen(
                         accentColor = accentGreen,
                         textPrimary = textPrimary,
                         textSecondary = textSecondary
-                    )
-                } else {
+                    )                } else {
                     // Vista home normal
                     HomeContent(
                         uiState = uiState,
@@ -155,7 +158,7 @@ fun HomeScreen(
                             } else {
                                 viewModel.searchExperiences(newText)
                             }
-                        },                        
+                        },
                         onCategorySelected = { index, category ->
                             selectedCategoryIndex = index
                             if (index == 0) {
@@ -166,17 +169,19 @@ fun HomeScreen(
                         },
                         onLoadAllExperiences = { viewModel.loadAllExperiences() },
                         onNavigateToExperienceDetails = onNavigateToExperienceDetails,
-                        onGoToExperiences = onGoToExperiences,                        onRefresh = { viewModel.refreshData() },
+                        onGoToExperiences = onGoToExperiences,
+                        onRefresh = { viewModel.refreshData() },
+                        onNavigateToChatBot = onNavigateToChatBot,
                         primaryGreen = primaryGreen,
                         lightGreen = lightGreen,
                         accentGreen = accentGreen,
                         cardBackground = cardBackground,
-                        textPrimary = textPrimary,                        textSecondary = textSecondary
+                        textPrimary = textPrimary,
+                        textSecondary = textSecondary
                     )
                 }
             }
-        }
-          // Bottom Navigation Bar
+        }          // Bottom Navigation Bar
         BottomNavigationBar(
             currentIndex = currentNavIndex,
             onNavIndexChanged = onNavIndexChanged,
@@ -192,9 +197,32 @@ fun HomeScreen(
                 println("DEBUG: Click en Perfil")
                 onNavigateToProfile()
             },
-            primaryColor = primaryGreen,
+            onNavigateToChatBot = {
+                println("DEBUG: Click en ChatBot")
+                onNavigateToChatBot()
+            },            primaryColor = primaryGreen,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+
+        // Floating Action Button para ChatBot
+        FloatingActionButton(
+            onClick = {
+                println("DEBUG: FAB ChatBot clicked")
+                onNavigateToChatBot()
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .padding(bottom = 85.dp), // Para que esté arriba de la barra de navegación
+            containerColor = primaryGreen,
+            contentColor = Color.White
+        ) {
+            Icon(
+                imageVector = Icons.Default.Chat,
+                contentDescription = "Chat con asistente",
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
@@ -207,8 +235,8 @@ private fun HomeContent(
     onSearchChange: (String) -> Unit,
     onCategorySelected: (Int, String) -> Unit,
     onLoadAllExperiences: () -> Unit,
-    onNavigateToExperienceDetails: (String) -> Unit,
-    onGoToExperiences: () -> Unit,    onRefresh: () -> Unit,
+    onNavigateToExperienceDetails: (String) -> Unit,    onGoToExperiences: () -> Unit,    onRefresh: () -> Unit,
+    onNavigateToChatBot: () -> Unit = {},
     primaryGreen: Color,
     lightGreen: Color,
     accentGreen: Color,
@@ -275,8 +303,7 @@ private fun HomeContent(
                     unfocusedBorderColor = Color.Transparent,
                     focusedContainerColor = cardBackground,
                     unfocusedContainerColor = cardBackground
-                ),
-                singleLine = true
+                ),                singleLine = true
             )
         }
 
@@ -1057,6 +1084,7 @@ private fun BottomNavigationBar(
     onNavigateToHome: () -> Unit,
     onNavigateToHistory: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToChatBot: () -> Unit,
     primaryColor: Color,
     modifier: Modifier = Modifier
 ) {
@@ -1071,7 +1099,7 @@ private fun BottomNavigationBar(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {            // Inicio
@@ -1096,6 +1124,19 @@ private fun BottomNavigationBar(
                     println("DEBUG: EnhancedBottomNavItem - Historial clicked")
                     onNavIndexChanged(1)
                     onNavigateToHistory()
+                },
+                primaryColor = primaryColor
+            )
+            
+            // ChatBot
+            EnhancedBottomNavItem(
+                icon = Icons.Default.SmartToy,
+                label = "Asistente",
+                isSelected = currentIndex == 3,
+                onClick = {
+                    println("DEBUG: EnhancedBottomNavItem - ChatBot clicked")
+                    onNavIndexChanged(3)
+                    onNavigateToChatBot()
                 },
                 primaryColor = primaryColor
             )

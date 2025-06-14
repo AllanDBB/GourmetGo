@@ -64,8 +64,11 @@ import gourmetgo.client.viewmodel.CreateExperienceViewModel
 import gourmetgo.client.viewmodel.factories.CreateExperienceViewModelFactory
 import gourmetgo.client.ui.screens.CreateExperienceScreen
 import gourmetgo.client.ui.screens.ExperienceReviewsScreen
+import gourmetgo.client.ui.screens.ChatBotScreen
 import gourmetgo.client.viewmodel.ExperienceReviewsViewModel
 import gourmetgo.client.viewmodel.factories.ExperienceReviewsViewModelFactory
+import gourmetgo.client.viewmodel.ChatBotViewModel
+import gourmetgo.client.viewmodel.factories.ChatBotViewModelFactory
 
 
 @Composable
@@ -121,8 +124,7 @@ fun MainNavigation(
                         else -> navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
                         }
-                    }
-                },
+                    }                },
                 onNavigateToRegister = {
                     navController.navigate("register")
                 }            )
@@ -143,6 +145,11 @@ fun MainNavigation(
                 },
                 onNavigateToHistory = {
                     navController.navigate("booking_history") {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToChatBot = {
+                    navController.navigate("chatbot") {
                         launchSingleTop = true
                     }
                 },
@@ -429,8 +436,7 @@ fun MainNavigation(
             )
 
             ViewAssistanceScreen(
-                viewModel = assistanceViewModel,
-                onDownloadPdf = {
+                viewModel = assistanceViewModel,                onDownloadPdf = {
                     // dsp
                 },
                 onDownloadCsv = {
@@ -453,6 +459,17 @@ fun MainNavigation(
                         launchSingleTop = true
                     }
                 }
+            )
+        }
+
+        // Ruta para el chatbot
+        composable("chatbot") {
+            val chatBotViewModel: ChatBotViewModel = viewModel(
+                factory = ChatBotViewModelFactory()
+            )
+            ChatBotScreen(
+                viewModel = chatBotViewModel,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }
