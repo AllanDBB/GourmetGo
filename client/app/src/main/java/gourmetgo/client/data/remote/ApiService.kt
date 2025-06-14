@@ -23,6 +23,8 @@ import gourmetgo.client.data.models.dtos.UpdateExperienceRequest
 import gourmetgo.client.data.models.dtos.AssistanceResponse
 import gourmetgo.client.data.models.dtos.RatingRequest
 import gourmetgo.client.data.models.dtos.RatingResponse
+import gourmetgo.client.data.models.Rating
+import gourmetgo.client.data.models.dtos.RatingWithUser
 import gourmetgo.client.data.models.dtos.DeleteExperienceRequest
 import gourmetgo.client.data.models.dtos.RequestDeleteRequest
 import gourmetgo.client.data.models.dtos.CreateExperienceRequest
@@ -102,7 +104,10 @@ interface ApiService {
     suspend fun createRating(
         @Header("Authorization") token: String,
         @Body request: RatingRequest
-    ): RatingResponse
+    ): RatingResponse    @GET("ratings/experience/{id}")
+    suspend fun getExperienceRatings(
+        @Path("id") experienceId: String
+    ): List<RatingWithUser>
 
     @POST("experiences/{id}/request-delete")
     suspend fun requestExperienceDelete(
