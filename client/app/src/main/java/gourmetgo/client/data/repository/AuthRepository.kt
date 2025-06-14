@@ -24,27 +24,37 @@ class AuthRepository(
             loginWithApi(email, password)
 
         }
-    }
-
-    private suspend fun loginWithApi(email: String, password: String):Result<User> {
+    }    private suspend fun loginWithApi(email: String, password: String):Result<User> {
         return try {
             val response = apiService.login(LoginRequest(email, password))
-
+            
             sharedPrefs.saveToken(response.token)
             sharedPrefs.saveUser(response.user)
 
-            when (response.user.role) {
-                "user" -> {
+            when (response.user.role) {                "user" -> {
                     mapUserToClient()
-                    if (AppConfig.ENABLE_LOGGING)
-                        Log.d("AuthRepository", "API login successful for user: ${response.user.email}, role: ${response.user.role}")
-                    Result.success(response.user)
-                }
-                "chef" -> {
+                    // Asegurar que los datos estén completamente guardados antes de continuar
+                    val savedClient = getCurrentClient()
+                    if (savedClient != null) {
+                        if (AppConfig.ENABLE_LOGGING)
+                            Log.d("AuthRepository", "API login successful for user: ${response.user.email}, role: ${response.user.role}")
+                        Result.success(response.user)
+                    } else {
+                        Log.e("AuthRepository", "Failed to save client data properly")
+                        Result.failure(Exception("Error guardando datos del usuario"))
+                    }
+                }                "chef" -> {
                     mapUserToChef()
-                    if (AppConfig.ENABLE_LOGGING)
-                        Log.d("AuthRepository", "API login successful for chef: ${response.user.email}, role: ${response.user.role}, id: ${response.user._id}")
-                    Result.success(response.user)
+                    // Asegurar que los datos estén completamente guardados antes de continuar
+                    val savedChef = getCurrentChef()
+                    if (savedChef != null) {
+                        if (AppConfig.ENABLE_LOGGING)
+                            android.util.Log.d("AuthRepository", "API login successful for chef: ${response.user.email}, role: ${response.user.role}, id: ${response.user._id}")
+                        Result.success(response.user)
+                    } else {
+                        android.util.Log.e("AuthRepository", "Failed to save chef data properly")
+                        Result.failure(Exception("Error guardando datos del chef"))
+                    }
                 }
                 else -> {
                     Log.e("AuthRepository","Unknown user type: ${response.user.role}")
@@ -55,22 +65,59 @@ class AuthRepository(
             Log.e("AuthRepository", "Error in API login", e)
             Result.failure(Exception("Error connection server"))
         }
-    }
-
-    private suspend fun mapUserToClient() {
-        val client = apiService.getClientMe(token = "Bearer ${sharedPrefs.getToken()}" )
-        sharedPrefs.saveClient(client)
+    }    private suspend fun mapUserToClient() {
+        try {
+            Log.d("AuthRepository", "Getting client data from API...")
+            val client = apiService.getClientMe(token = "Bearer ${sharedPrefs.getToken()}")
+            Log.d("AuthRepository", "Client received from API: $client")
+            
+            // Guardar cliente
+            sharedPrefs.saveClient(client)
+            Log.d("AuthRepository", "Client saved to SharedPrefs")
+            
+            // Verificar que se guardó correctamente
+            val savedClient = sharedPrefs.getClient()
+            if (savedClient != null) {
+                Log.d("AuthRepository", "Client verification successful: ${savedClient.name}")
+            } else {
+                Log.e("AuthRepository", "Client verification failed - client is null after save")
+                throw Exception("Failed to save client data")
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error in mapUserToClient", e)
+            throw e
+        }
     }    private suspend fun mapUserToChef() {
         try {
-            Log.d("AuthRepository", "Getting chef data from API...")
+            android.util.Log.d("AuthRepository", "Getting chef data from API...")
             val chef = apiService.getChefMe(token = "Bearer ${sharedPrefs.getToken()}")
-            Log.d("AuthRepository", "Chef received from API: $chef")
-            Log.d("AuthRepository", "Chef _id: '${chef._id}'")
+            android.util.Log.d("AuthRepository", "Chef received from API: $chef")
+            
+            // Guardar chef
             sharedPrefs.saveChef(chef)
-            Log.d("AuthRepository", "Chef saved to SharedPrefs")
-            Log.d("AuthRepository", sharedPrefs.debugUserData())
+            android.util.Log.d("AuthRepository", "Chef saved to SharedPrefs")
+            
+            // Verificación múltiple para asegurar sincronización
+            var savedChef: gourmetgo.client.data.models.Chef? = null
+            var attempts = 0
+            while (savedChef == null && attempts < 5) {
+                kotlinx.coroutines.delay(50) // Pequeño delay
+                savedChef = sharedPrefs.getChef()
+                attempts++
+                if (savedChef == null) {
+                    android.util.Log.d("AuthRepository", "Intento $attempts: chef aún no disponible, reintentando...")
+                }
+            }
+            
+            if (savedChef != null) {
+                android.util.Log.d("AuthRepository", "Chef verification successful after $attempts attempts: ${savedChef.name}")
+            } else {
+                android.util.Log.e("AuthRepository", "Chef verification failed after $attempts attempts")
+                throw Exception("Failed to save chef data after multiple attempts")
+            }
+            
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Error in mapUserToChef", e)
+            android.util.Log.e("AuthRepository", "Error in mapUserToChef", e)
             throw e
         }
     }
@@ -86,13 +133,32 @@ class AuthRepository(
             Log.e("AuthRepository", "Error getting current client", e)
             null
         }
-    }
-    fun getCurrentChef(): Chef? {
+    }    fun getCurrentChef(): Chef? {
         return try {
-            sharedPrefs.getChef()
+            val chef = sharedPrefs.getChef()
+            if (chef == null) {
+                // Si el chef es null, intentar forzar una recarga
+                val user = sharedPrefs.getUser()
+                if (user?.role == "chef") {
+                    // Intentar recargar desde las preferencias una vez más
+                    Thread.sleep(50) // Pequeña pausa para sincronización
+                    return sharedPrefs.getChef()
+                }
+            }
+            chef
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Error getting current chef", e)
+            android.util.Log.e("AuthRepository", "Error getting current chef", e)
             null
+        }
+    }
+
+    fun hasActiveSession(): Boolean {
+        return try {
+            val token = sharedPrefs.getToken()
+            val user = sharedPrefs.getUser()
+            !token.isNullOrEmpty() && user != null
+        } catch (e: Exception) {
+            false
         }
     }
 
