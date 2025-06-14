@@ -10,6 +10,7 @@ import gourmetgo.client.data.models.dtos.LoginRequest
 import gourmetgo.client.data.models.dtos.UpdateChefRequest
 import gourmetgo.client.data.models.dtos.UpdateClientRequest
 import gourmetgo.client.data.remote.ApiService
+import kotlinx.coroutines.delay
 
 class AuthRepository(
     private val apiService: ApiService,
@@ -45,15 +46,19 @@ class AuthRepository(
                     }
                 }                "chef" -> {
                     mapUserToChef()
-                    // Asegurar que los datos estén completamente guardados antes de continuar
+                    
+                    // Delay adicional para asegurar sincronización
+                    delay(200)
+                    
+                    // Verificación final
                     val savedChef = getCurrentChef()
                     if (savedChef != null) {
                         if (AppConfig.ENABLE_LOGGING)
                             android.util.Log.d("AuthRepository", "API login successful for chef: ${response.user.email}, role: ${response.user.role}, id: ${response.user._id}")
                         Result.success(response.user)
                     } else {
-                        android.util.Log.e("AuthRepository", "Failed to save chef data properly")
-                        Result.failure(Exception("Error guardando datos del chef"))
+                        android.util.Log.e("AuthRepository", "Failed to save chef data properly - datos no sincronizados")
+                        Result.failure(Exception("Error guardando datos del chef - sincronización fallida"))
                     }
                 }
                 else -> {
@@ -96,16 +101,22 @@ class AuthRepository(
             // Guardar chef
             sharedPrefs.saveChef(chef)
             android.util.Log.d("AuthRepository", "Chef saved to SharedPrefs")
-            
-            // Verificación múltiple para asegurar sincronización
+              // Verificación múltiple para asegurar sincronización
             var savedChef: gourmetgo.client.data.models.Chef? = null
             var attempts = 0
-            while (savedChef == null && attempts < 5) {
-                kotlinx.coroutines.delay(50) // Pequeño delay
+            while (savedChef == null && attempts < 8) {
+                delay(75) // Delay incrementado
                 savedChef = sharedPrefs.getChef()
                 attempts++
                 if (savedChef == null) {
                     android.util.Log.d("AuthRepository", "Intento $attempts: chef aún no disponible, reintentando...")
+                    
+                    // Si fallan varios intentos, volver a guardar
+                    if (attempts % 3 == 0) {
+                        android.util.Log.d("AuthRepository", "Reintentando guardar chef en intento $attempts")
+                        sharedPrefs.saveChef(chef)
+                        delay(100)
+                    }
                 }
             }
             
@@ -137,12 +148,22 @@ class AuthRepository(
         return try {
             val chef = sharedPrefs.getChef()
             if (chef == null) {
-                // Si el chef es null, intentar forzar una recarga
+                // Si el chef es null, intentar forzar una recarga con múltiples intentos
                 val user = sharedPrefs.getUser()
                 if (user?.role == "chef") {
-                    // Intentar recargar desde las preferencias una vez más
-                    Thread.sleep(50) // Pequeña pausa para sincronización
-                    return sharedPrefs.getChef()
+                    android.util.Log.d("AuthRepository", "Chef is null, intentando recarga...")
+                    
+                    // Múltiples intentos de recarga con delays incrementales
+                    for (attempt in 1..3) {
+                        Thread.sleep(50L * attempt) // Delay incremental
+                        val reloadedChef = sharedPrefs.getChef()
+                        if (reloadedChef != null) {
+                            android.util.Log.d("AuthRepository", "Chef recargado exitosamente en intento $attempt")
+                            return reloadedChef
+                        }
+                        android.util.Log.d("AuthRepository", "Intento $attempt fallido, reintentando...")
+                    }
+                    android.util.Log.e("AuthRepository", "No se pudo recargar el chef después de 3 intentos")
                 }
             }
             chef
